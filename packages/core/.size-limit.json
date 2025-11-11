@@ -1,0 +1,3 @@
+[
+	{ "name": "<core>", "path": ["dist/index.js"], "limit": "6 KB" }
+]

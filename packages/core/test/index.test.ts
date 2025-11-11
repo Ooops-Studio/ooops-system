@@ -1,4 +1,3 @@
-// packages/demo/test/index.test.ts
 import {describe, it, expect} from 'vitest'
 
 import {greet} from '../src/index'

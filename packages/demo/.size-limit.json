@@ -1,3 +1,0 @@
-[
-	{ "name": "<pkg>", "path": ["dist/index.js"], "limit": "6 KB" }
-]

@@ -1,0 +1,3 @@
+[
+	{ "name": "<frameworks>", "path": ["dist/index.js"], "limit": "6 KB" }
+]
