@@ -1,0 +1,13 @@
+#!/usr/bin/env sh
+set -eu
+
+# Fast-fail if only docs changed (optional)
+if git diff --cached --name-only | grep -Eq '(^docs/|\.md$)'; then
+  echo "Docs-only changes: running lint only"
+  pnpm -w lint
+  exit 0
+fi
+
+pnpm -w lint
+pnpm -w typecheck
+# Don’t run tests here; your CI handles the heavy lifting

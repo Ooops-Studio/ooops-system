@@ -1,0 +1,3 @@
+# @ooopsstudio/root
+
+## 0.0.0

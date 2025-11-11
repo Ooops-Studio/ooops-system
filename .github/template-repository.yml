@@ -1,0 +1,10 @@
+# .github/template-repository.yml
+name: TypeScript Monorepo Template
+description: Opinionated TypeScript + pnpm workspace monorepo template with Vitest, ESLint, tsup, and more
+topics:
+  - template
+  - monorepo
+  - typescript
+  - pnpm
+  - vitest
+  - eslint
