@@ -1,0 +1,3 @@
+# @ooopsstudio/core
+
+## 0.0.0

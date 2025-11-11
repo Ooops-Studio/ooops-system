@@ -1,7 +1,7 @@
 {
-  "name": "@<your-scope>/<name>",
-  "description": "",
-  "version": "0.0.0",
+  "name": "@ooopstudio/sdk",
+  "description": "Developer-friendly utilities and integrations built on top of @ooopsstudio/core — analytics, forms, config, cookies, and helpers for reproducible, framework-agnostic apps.",
+	"version": "0.0.0",
   "type": "module",
   "publishConfig": {"access": "public"},
   "sideEffects": false,
