@@ -1,0 +1,73 @@
+{
+	"name": "@ooopsstudio/bridges",
+	"version": "0.9.0",
+	"description": "Explicit, bounded cross-domain bridges for Ooops System packages.",
+	"type": "module",
+	"publishConfig": {"access": "public"},
+	"files": ["dist"],
+	"exports": {
+		".": {"types": "./dist/index.d.ts", "import": "./dist/index.js"},
+		"./observability": {"types": "./dist/observability.d.ts", "import": "./dist/observability.js"},
+		"./audit": {"types": "./dist/audit.d.ts", "import": "./dist/audit.js"},
+		"./cache": {"types": "./dist/cache.d.ts", "import": "./dist/cache.js"},
+		"./events": {"types": "./dist/events.d.ts", "import": "./dist/events.js"},
+		"./jobs": {"types": "./dist/jobs.d.ts", "import": "./dist/jobs.js"},
+		"./lifecycle": {"types": "./dist/lifecycle.d.ts", "import": "./dist/lifecycle.js"},
+		"./performance": {"types": "./dist/performance.d.ts", "import": "./dist/performance.js"},
+		"./profiling": {"types": "./dist/profiling.d.ts", "import": "./dist/profiling.js"},
+		"./rate-limit": {"types": "./dist/rate-limit.d.ts", "import": "./dist/rate-limit.js"},
+		"./resilience": {"types": "./dist/resilience.d.ts", "import": "./dist/resilience.js"}
+	},
+	"scripts": {
+		"typecheck": "tsc -p tsconfig.json --noEmit",
+		"build": "tsup",
+		"prepack": "pnpm build",
+		"pack:dry": "pnpm pack --dry-run",
+		"test": "vitest run",
+		"size": "node src/size-audit.mjs",
+		"size:details": "node src/size-audit.mjs --details",
+		"depcruise": "cd ../.. && depcruise --config .dependency-cruiser.cjs packages/bridges/src",
+		"publint": "publint",
+		"attw": "attw --pack --ignore-rules no-resolution --ignore-rules cjs-resolves-to-esm"
+	},
+	"license": "MIT",
+	"engines": {"node": ">=22.14.0"},
+	"repository": {"type": "git", "url": "git+https://github.com/ooops-studio/ooops-system.git"},
+	"homepage": "https://github.com/ooops-studio/ooops-system",
+	"bugs": {"url": "https://github.com/ooops-studio/ooops-system/issues"},
+	"sideEffects": false,
+	"dependencies": {"@ooopsstudio/core": "workspace:^"},
+	"peerDependencies": {
+		"@ooopsstudio/audit": "workspace:^",
+		"@ooopsstudio/cache": "workspace:^",
+		"@ooopsstudio/events": "workspace:^",
+		"@ooopsstudio/jobs": "workspace:^",
+		"@ooopsstudio/lifecycle": "workspace:^",
+		"@ooopsstudio/performance": "workspace:^",
+		"@ooopsstudio/profiling": "workspace:^",
+		"@ooopsstudio/rate-limit": "workspace:^",
+		"@ooopsstudio/resilience": "workspace:^"
+	},
+	"peerDependenciesMeta": {
+		"@ooopsstudio/audit": {"optional": true},
+		"@ooopsstudio/cache": {"optional": true},
+		"@ooopsstudio/events": {"optional": true},
+		"@ooopsstudio/jobs": {"optional": true},
+		"@ooopsstudio/lifecycle": {"optional": true},
+		"@ooopsstudio/performance": {"optional": true},
+		"@ooopsstudio/profiling": {"optional": true},
+		"@ooopsstudio/rate-limit": {"optional": true},
+		"@ooopsstudio/resilience": {"optional": true}
+	},
+	"devDependencies": {
+		"@ooopsstudio/audit": "workspace:^",
+		"@ooopsstudio/cache": "workspace:^",
+		"@ooopsstudio/events": "workspace:^",
+		"@ooopsstudio/jobs": "workspace:^",
+		"@ooopsstudio/lifecycle": "workspace:^",
+		"@ooopsstudio/performance": "workspace:^",
+		"@ooopsstudio/profiling": "workspace:^",
+		"@ooopsstudio/rate-limit": "workspace:^",
+		"@ooopsstudio/resilience": "workspace:^"
+	}
+}

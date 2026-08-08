@@ -1,0 +1,14 @@
+{
+	"id": "dependency-cruiser",
+	"label": "Dependency Cruiser",
+	"description": "Dependency graph architecture checks.",
+	"files": [
+		".dependency-cruiser.cjs"
+	],
+	"scripts": [
+		"depcruise"
+	],
+	"devDependencies": {
+		"dependency-cruiser": "^17.0.1"
+	}
+}

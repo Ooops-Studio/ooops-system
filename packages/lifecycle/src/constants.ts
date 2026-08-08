@@ -1,0 +1,28 @@
+export const DEFAULT_INIT_TIMEOUT_MS_PROD = 10_000
+export const DEFAULT_INIT_TIMEOUT_MS_DEV = 15_000
+export const DEFAULT_WARM_TIMEOUT_MS_PROD = 5_000
+export const DEFAULT_WARM_TIMEOUT_MS_DEV = 10_000
+export const DEFAULT_SHUTDOWN_TIMEOUT_MS_PROD = 10_000
+export const DEFAULT_SHUTDOWN_TIMEOUT_MS_DEV = 15_000
+export const DEFAULT_HOOK_TIMEOUT_MS = 5_000
+export const DEFAULT_DRAIN_GRACE_PERIOD_MS_PROD = 2_000
+export const DEFAULT_DRAIN_GRACE_PERIOD_MS_DEV = 5_000
+export const DEFAULT_HEALTH_CHECK_INTERVAL_MS_PROD = 30_000
+export const DEFAULT_HEALTH_CHECK_INTERVAL_MS_DEV = 10_000
+export const DEFAULT_HEALTH_CONCURRENCY = 8
+export const REQUIRED_HEALTH_FAILURE_THRESHOLD = 3
+export const MAX_LIFECYCLE_TIMER_MS = 2_147_483_647
+export const MAX_STARTUP_HOOKS = 256
+export const MAX_SHUTDOWN_HOOKS = 256
+export const MAX_HEALTH_CHECKS = 128
+export const MAX_LIFECYCLE_IDENTIFIER_LENGTH = 128
+
+export const DEFAULT_DEPENDENCY_GROUPS = [
+	'http-server',
+	'runtime-monitors',
+	'ratelimit',
+	'observability',
+	'queue',
+	'cache',
+	'db'
+] as const

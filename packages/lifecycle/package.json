@@ -1,0 +1,35 @@
+{
+	"name": "@ooopsstudio/lifecycle",
+	"version": "0.9.0",
+	"description": "Staged startup, health probes, graceful draining, and retryable shutdown for Ooops System applications.",
+	"type": "module",
+	"publishConfig": {"access": "public"},
+	"files": ["dist"],
+	"exports": {
+		".": {"types": "./dist/index.d.ts", "import": "./dist/index.js"},
+		"./development": {"types": "./dist/development.d.ts", "import": "./dist/development.js"},
+		"./production": {"types": "./dist/production.d.ts", "import": "./dist/production.js"},
+		"./custom": {"types": "./dist/custom.d.ts", "import": "./dist/custom.js"},
+		"./node": {"types": "./dist/node.d.ts", "import": "./dist/node.js"},
+		"./observability": {"types": "./dist/observability.d.ts", "import": "./dist/observability.js"},
+		"./public/types": {"types": "./dist/public/types.d.ts", "import": "./dist/public/types.js"}
+	},
+	"scripts": {
+		"typecheck": "tsc -p tsconfig.json --noEmit",
+		"build": "tsup",
+		"test": "vitest run --exclude 'test/integration/**/*.test.ts'",
+		"test:integration": "vitest run test/integration",
+		"size": "node size-audit.mjs",
+		"size:details": "node size-audit.mjs --details",
+		"depcruise": "cd ../.. && depcruise --config .dependency-cruiser.cjs packages/lifecycle/src",
+		"publint": "publint",
+		"attw": "attw --pack --ignore-rules no-resolution --ignore-rules cjs-resolves-to-esm"
+	},
+	"license": "MIT",
+	"engines": {"node": ">=22.14.0"},
+	"repository": {"type": "git", "url": "git+https://github.com/ooops-studio/ooops-system.git"},
+	"homepage": "https://github.com/ooops-studio/ooops-system",
+	"bugs": {"url": "https://github.com/ooops-studio/ooops-system/issues"},
+	"sideEffects": false,
+	"dependencies": {"@ooopsstudio/core": "workspace:^"}
+}

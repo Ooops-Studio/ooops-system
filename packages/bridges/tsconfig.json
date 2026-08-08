@@ -1,0 +1,25 @@
+{
+	"extends": "../../tsconfig.base.json",
+	"compilerOptions": {
+		"rootDir": "..",
+		"outDir": "dist",
+		"types": ["node"],
+		"exactOptionalPropertyTypes": false,
+		"baseUrl": ".",
+		"paths": {
+			"@ooopsstudio/core": ["../core/src/index.ts"],
+			"@ooopsstudio/core/*": ["../core/src/*"],
+			"@ooopsstudio/audit/*": ["../audit/src/audit/public/*"],
+			"@ooopsstudio/cache/*": ["../cache/src/cache/public/*"],
+			"@ooopsstudio/events/*": ["../events/src/events/public/*"],
+			"@ooopsstudio/jobs/*": ["../jobs/src/jobs/public/*"],
+			"@ooopsstudio/lifecycle/*": ["../lifecycle/src/public/*"],
+			"@ooopsstudio/performance/*": ["../performance/src/performance/public/*"],
+			"@ooopsstudio/profiling/*": ["../profiling/src/public/*"],
+			"@ooopsstudio/rate-limit/*": ["../rate-limit/src/rate-limit/public/*"],
+			"@ooopsstudio/resilience/*": ["../resilience/src/resilience/public/*"]
+		}
+	},
+	"include": ["src", "test"],
+	"exclude": ["dist", "coverage", "node_modules"]
+}

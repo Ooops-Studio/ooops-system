@@ -1,0 +1,17 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "sourceMap": true,
+    "outDir": "dist",
+    "lib": ["ES2022", "DOM"],
+    "types": ["node"],
+    "paths": {
+      "@ooopsstudio/core": ["../core/src/index.ts", "../core/dist/index.d.ts"],
+      "@ooopsstudio/core/*": ["../core/src/*", "../core/dist/*"],
+      "@ooopsstudio/sdk/*": ["../sdk/src/*", "../sdk/dist/*"]
+    },
+		"stripInternal": true
+  },
+  "include": ["src"],
+  "exclude": ["dist", "coverage", "node_modules"]
+}

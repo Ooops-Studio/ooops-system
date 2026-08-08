@@ -1,0 +1,284 @@
+{
+	"version": 1,
+	"modules": [
+		{
+			"id": "dependency-cruiser",
+			"label": "Dependency Cruiser",
+			"description": "Dependency graph architecture checks.",
+			"files": [
+				".dependency-cruiser.cjs"
+			],
+			"scripts": [
+				"depcruise"
+			],
+			"devDependencies": {
+				"dependency-cruiser": "^17.0.1"
+			}
+		},
+		{
+			"id": "license-policy",
+			"label": "License policy",
+			"description": "Dependency license policy, checker script, and schema.",
+			"files": [
+				"license-policy.json",
+				"schemas/license-policy.schema.json",
+				"scripts/check-licenses.mjs"
+			],
+			"scripts": [
+				"check:licenses"
+			],
+			"devDependencies": {}
+		},
+		{
+			"id": "migration-tools",
+			"label": "Package migration tools",
+			"description": "Scripts for creating packages and copying packages from another monorepo.",
+			"files": [
+				"scripts/create-package.mjs",
+				"scripts/copy-package-from-repo.mjs",
+				"scripts/deprecate-package.mjs",
+				"scripts/smoke-check-package-tools.mjs"
+			],
+			"scripts": [
+				"create:package",
+				"copy:package",
+				"deprecate:package",
+				"smoke:package-tools"
+			],
+			"devDependencies": {}
+		},
+		{
+			"id": "organization-policy",
+			"label": "Organization policy",
+			"description": "Configurable dependency, peer range, import direction, and source-pattern rules.",
+			"files": [
+				"organization-policy.json",
+				"scripts/check-organization-policy.mjs"
+			],
+			"scripts": [
+				"check:organization-policy"
+			],
+			"devDependencies": {},
+			"dependencies": {},
+			"peerDependencies": {},
+			"requires": [],
+			"conflicts": [],
+			"workflowPermissions": {},
+			"validationCommands": [
+				"pnpm check:organization-policy"
+			],
+			"packageArchetypes": []
+		},
+		{
+			"id": "package-readiness",
+			"label": "Package readiness",
+			"description": "Advisory or strict release-readiness reports for publishable packages.",
+			"files": [
+				"package-readiness.config.json",
+				"scripts/package-readiness.mjs"
+			],
+			"scripts": [
+				"readiness",
+				"readiness:json",
+				"readiness:strict"
+			],
+			"devDependencies": {}
+		},
+		{
+			"id": "publint-attw",
+			"label": "Publish compatibility checks",
+			"description": "publint and Are The Types Wrong package compatibility checks.",
+			"files": [],
+			"scripts": [
+				"publint",
+				"attw",
+				"check:packed-artifacts"
+			],
+			"devDependencies": {
+				"@arethetypeswrong/cli": "^0.18.2",
+				"publint": "^0.3.13"
+			}
+		},
+		{
+			"id": "registry-github",
+			"label": "GitHub Packages registry support",
+			"description": "Optional GitHub Packages publishing and consumer registry documentation.",
+			"files": [
+				".npmrc.example"
+			],
+			"scripts": [],
+			"devDependencies": {}
+		},
+		{
+			"id": "release",
+			"label": "Changesets release workflow",
+			"description": "Changesets release workflow, publish preflight, and release documentation.",
+			"files": [
+				".changeset",
+				".github/workflows/release.yml",
+				"scripts/release-preflight.mjs",
+				"scripts/publish-packages.mjs"
+			],
+			"scripts": [
+				"release:preflight",
+				"publish:packages",
+				"changeset"
+			],
+			"devDependencies": {
+				"@changesets/changelog-github": "^0.5.1",
+				"@changesets/cli": "^2.28.0"
+			}
+		},
+		{
+			"id": "renovate",
+			"label": "Renovate dependency automation",
+			"description": "Weekly dependency update automation for npm, pnpm lockfile, and GitHub Actions.",
+			"files": [
+				"renovate.json"
+			],
+			"scripts": [],
+			"devDependencies": {}
+		},
+		{
+			"id": "security-audit",
+			"label": "Security audit",
+			"description": "Production and development dependency audit scripts and CI jobs.",
+			"files": [],
+			"scripts": [
+				"audit:prod",
+				"audit:dev"
+			],
+			"devDependencies": {}
+		},
+		{
+			"id": "size-limit",
+			"label": "Size Limit",
+			"description": "Package-level size-limit scripts, configs, and dev dependencies.",
+			"files": [
+				"{{starterPackageDir}}/.size-limit.json",
+				"examples/package-archetypes/public-package/.size-limit.json",
+				"examples/package-archetypes/multi-entry-package/.size-limit.mjs",
+				"examples/package-archetypes/adapter-package/.size-limit.mjs"
+			],
+			"scripts": [
+				"size"
+			],
+			"devDependencies": {
+				"@size-limit/preset-small-lib": "^11.2.0",
+				"size-limit": "^11.2.0"
+			}
+		}
+	],
+	"files": [
+		{
+			"moduleId": "dependency-cruiser",
+			"templatePath": ".dependency-cruiser.cjs",
+			"cachePath": "files/dependency-cruiser/LmRlcGVuZGVuY3ktY3J1aXNlci5janM"
+		},
+		{
+			"moduleId": "license-policy",
+			"templatePath": "license-policy.json",
+			"cachePath": "files/license-policy/bGljZW5zZS1wb2xpY3kuanNvbg"
+		},
+		{
+			"moduleId": "license-policy",
+			"templatePath": "schemas/license-policy.schema.json",
+			"cachePath": "files/license-policy/c2NoZW1hcy9saWNlbnNlLXBvbGljeS5zY2hlbWEuanNvbg"
+		},
+		{
+			"moduleId": "license-policy",
+			"templatePath": "scripts/check-licenses.mjs",
+			"cachePath": "files/license-policy/c2NyaXB0cy9jaGVjay1saWNlbnNlcy5tanM"
+		},
+		{
+			"moduleId": "migration-tools",
+			"templatePath": "scripts/create-package.mjs",
+			"cachePath": "files/migration-tools/c2NyaXB0cy9jcmVhdGUtcGFja2FnZS5tanM"
+		},
+		{
+			"moduleId": "migration-tools",
+			"templatePath": "scripts/copy-package-from-repo.mjs",
+			"cachePath": "files/migration-tools/c2NyaXB0cy9jb3B5LXBhY2thZ2UtZnJvbS1yZXBvLm1qcw"
+		},
+		{
+			"moduleId": "migration-tools",
+			"templatePath": "scripts/deprecate-package.mjs",
+			"cachePath": "files/migration-tools/c2NyaXB0cy9kZXByZWNhdGUtcGFja2FnZS5tanM"
+		},
+		{
+			"moduleId": "migration-tools",
+			"templatePath": "scripts/smoke-check-package-tools.mjs",
+			"cachePath": "files/migration-tools/c2NyaXB0cy9zbW9rZS1jaGVjay1wYWNrYWdlLXRvb2xzLm1qcw"
+		},
+		{
+			"moduleId": "organization-policy",
+			"templatePath": "organization-policy.json",
+			"cachePath": "files/organization-policy/b3JnYW5pemF0aW9uLXBvbGljeS5qc29u"
+		},
+		{
+			"moduleId": "organization-policy",
+			"templatePath": "scripts/check-organization-policy.mjs",
+			"cachePath": "files/organization-policy/c2NyaXB0cy9jaGVjay1vcmdhbml6YXRpb24tcG9saWN5Lm1qcw"
+		},
+		{
+			"moduleId": "package-readiness",
+			"templatePath": "package-readiness.config.json",
+			"cachePath": "files/package-readiness/cGFja2FnZS1yZWFkaW5lc3MuY29uZmlnLmpzb24"
+		},
+		{
+			"moduleId": "package-readiness",
+			"templatePath": "scripts/package-readiness.mjs",
+			"cachePath": "files/package-readiness/c2NyaXB0cy9wYWNrYWdlLXJlYWRpbmVzcy5tanM"
+		},
+		{
+			"moduleId": "registry-github",
+			"templatePath": ".npmrc.example",
+			"cachePath": "files/registry-github/Lm5wbXJjLmV4YW1wbGU"
+		},
+		{
+			"moduleId": "release",
+			"templatePath": ".changeset",
+			"cachePath": "files/release/LmNoYW5nZXNldA"
+		},
+		{
+			"moduleId": "release",
+			"templatePath": ".github/workflows/release.yml",
+			"cachePath": "files/release/LmdpdGh1Yi93b3JrZmxvd3MvcmVsZWFzZS55bWw"
+		},
+		{
+			"moduleId": "release",
+			"templatePath": "scripts/release-preflight.mjs",
+			"cachePath": "files/release/c2NyaXB0cy9yZWxlYXNlLXByZWZsaWdodC5tanM"
+		},
+		{
+			"moduleId": "release",
+			"templatePath": "scripts/publish-packages.mjs",
+			"cachePath": "files/release/c2NyaXB0cy9wdWJsaXNoLXBhY2thZ2VzLm1qcw"
+		},
+		{
+			"moduleId": "renovate",
+			"templatePath": "renovate.json",
+			"cachePath": "files/renovate/cmVub3ZhdGUuanNvbg"
+		},
+		{
+			"moduleId": "size-limit",
+			"templatePath": "{{starterPackageDir}}/.size-limit.json",
+			"cachePath": "files/size-limit/e3tzdGFydGVyUGFja2FnZURpcn19Ly5zaXplLWxpbWl0Lmpzb24"
+		},
+		{
+			"moduleId": "size-limit",
+			"templatePath": "examples/package-archetypes/public-package/.size-limit.json",
+			"cachePath": "files/size-limit/ZXhhbXBsZXMvcGFja2FnZS1hcmNoZXR5cGVzL3B1YmxpYy1wYWNrYWdlLy5zaXplLWxpbWl0Lmpzb24"
+		},
+		{
+			"moduleId": "size-limit",
+			"templatePath": "examples/package-archetypes/multi-entry-package/.size-limit.mjs",
+			"cachePath": "files/size-limit/ZXhhbXBsZXMvcGFja2FnZS1hcmNoZXR5cGVzL211bHRpLWVudHJ5LXBhY2thZ2UvLnNpemUtbGltaXQubWpz"
+		},
+		{
+			"moduleId": "size-limit",
+			"templatePath": "examples/package-archetypes/adapter-package/.size-limit.mjs",
+			"cachePath": "files/size-limit/ZXhhbXBsZXMvcGFja2FnZS1hcmNoZXR5cGVzL2FkYXB0ZXItcGFja2FnZS8uc2l6ZS1saW1pdC5tanM"
+		}
+	]
+}

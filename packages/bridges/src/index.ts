@@ -1,0 +1,1 @@
+export {wireObservability} from './observability'

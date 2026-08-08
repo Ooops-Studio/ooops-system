@@ -1,0 +1,16 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"type": "object",
+	"required": ["registryStrategy", "packageAccess", "enabledModules", "starterPackageDir"],
+	"properties": {
+		"$schema": {"type": "string"},
+		"registryStrategy": {"enum": ["npm", "github", "both"]},
+		"packageAccess": {"enum": ["public", "restricted"]},
+		"publishingMode": {"enum": ["trusted-publishing", "npm-token"]},
+		"actionPinning": {"enum": ["versions", "sha"]},
+		"preset": {"enum": ["minimal-library", "internal-packages", "public-strict"]},
+		"enabledModules": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+		"starterPackageDir": {"type": "string", "pattern": "^packages/[A-Za-z0-9._-]+$"}
+	},
+	"additionalProperties": false
+}

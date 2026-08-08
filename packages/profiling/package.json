@@ -1,0 +1,88 @@
+{
+	"name": "@ooopsstudio/profiling",
+	"version": "0.9.0",
+	"description": "Bounded CPU profiling with explicit Inspector and Pyroscope integrations for Ooops System applications.",
+	"type": "module",
+	"publishConfig": {
+		"access": "public"
+	},
+	"files": [
+		"dist"
+	],
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js"
+		},
+		"./development": {
+			"types": "./dist/development.d.ts",
+			"import": "./dist/development.js"
+		},
+		"./production": {
+			"types": "./dist/production.d.ts",
+			"import": "./dist/production.js"
+		},
+		"./custom": {
+			"types": "./dist/custom.d.ts",
+			"import": "./dist/custom.js"
+		},
+		"./profilers/inspector": {
+			"types": "./dist/profilers/inspector.d.ts",
+			"import": "./dist/profilers/inspector.js"
+		},
+		"./providers/pyroscope": {
+			"types": "./dist/providers/pyroscope.d.ts",
+			"import": "./dist/providers/pyroscope.js"
+		},
+		"./exporters/console": {
+			"types": "./dist/exporters/console.d.ts",
+			"import": "./dist/exporters/console.js"
+		},
+		"./exporters/memory": {
+			"types": "./dist/exporters/memory.d.ts",
+			"import": "./dist/exporters/memory.js"
+		},
+		"./observability": {
+			"types": "./dist/observability.d.ts",
+			"import": "./dist/observability.js"
+		}
+	},
+	"scripts": {
+		"typecheck": "tsc -p tsconfig.json --noEmit",
+		"build": "tsup",
+		"test": "pnpm build && vitest run --exclude 'test/integration/**/*.test.ts'",
+		"test:integration": "vitest run test/integration",
+		"size": "node src/size-audit.mjs",
+		"size:details": "node src/size-audit.mjs --details",
+		"depcruise": "cd ../.. && depcruise --config .dependency-cruiser.cjs packages/profiling/src",
+		"publint": "publint",
+		"attw": "attw --pack --ignore-rules no-resolution --ignore-rules cjs-resolves-to-esm"
+	},
+	"license": "MIT",
+	"engines": {
+		"node": ">=22.14.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/ooops-studio/ooops-system.git"
+	},
+	"homepage": "https://github.com/ooops-studio/ooops-system",
+	"bugs": {
+		"url": "https://github.com/ooops-studio/ooops-system/issues"
+	},
+	"sideEffects": false,
+	"dependencies": {
+		"@ooopsstudio/core": "workspace:^"
+	},
+	"peerDependencies": {
+		"@pyroscope/nodejs": "^0.6.0"
+	},
+	"peerDependenciesMeta": {
+		"@pyroscope/nodejs": {
+			"optional": true
+		}
+	},
+	"devDependencies": {
+		"@pyroscope/nodejs": "^0.6.1"
+	}
+}

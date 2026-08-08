@@ -1,0 +1,11 @@
+{
+	"id": "security-audit",
+	"label": "Security audit",
+	"description": "Production and development dependency audit scripts and CI jobs.",
+	"files": [],
+	"scripts": [
+		"audit:prod",
+		"audit:dev"
+	],
+	"devDependencies": {}
+}

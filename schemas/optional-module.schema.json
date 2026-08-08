@@ -1,0 +1,62 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"type": "object",
+	"required": [
+		"id",
+		"label",
+		"description",
+		"files",
+		"scripts",
+		"devDependencies"
+	],
+	"properties": {
+		"id": {"type": "string"},
+		"label": {"type": "string"},
+		"description": {"type": "string"},
+		"files": {
+			"type": "array",
+			"items": {"type": "string"}
+		},
+		"scripts": {
+			"type": "array",
+			"items": {"type": "string"}
+		},
+		"devDependencies": {
+			"type": "array",
+			"items": {"type": "string"}
+		},
+		"dependencies": {
+			"type": "object",
+			"additionalProperties": {"type": "string"}
+		},
+		"peerDependencies": {
+			"type": "object",
+			"additionalProperties": {"type": "string"}
+		},
+		"requires": {
+			"type": "array",
+			"items": {"type": "string"},
+			"uniqueItems": true
+		},
+		"conflicts": {
+			"type": "array",
+			"items": {"type": "string"},
+			"uniqueItems": true
+		},
+		"workflowPermissions": {
+			"type": "object",
+			"additionalProperties": {"enum": ["none", "read", "write"]}
+		},
+		"validationCommands": {
+			"type": "array",
+			"items": {"type": "string"},
+			"uniqueItems": true
+		},
+		"packageArchetypes": {
+			"type": "array",
+			"items": {"type": "string"},
+			"uniqueItems": true
+		}
+	},
+	"additionalProperties": false
+}

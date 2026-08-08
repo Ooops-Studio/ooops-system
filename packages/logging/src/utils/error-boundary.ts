@@ -1,0 +1,143 @@
+/**
+ * @file Error boundary utilities for logging service.
+ * Provides standardized patterns for error handling and silent failures.
+ * Similar to createSafeObserve() in errors service, but tailored for logging.
+ */
+
+import type {Errors} from '@ooopsstudio/core/ports/errors'
+import {
+	createErrorBoundary as createEngineErrorBoundary,
+	createSilentFailure as createEngineSilentFailure,
+	createSilentFailureWithFallback as createEngineSilentFailureWithFallback
+} from '@ooopsstudio/core/utils/error-boundary'
+
+/**
+ * Options for creating an error boundary
+ */
+export interface ErrorBoundaryOptions {
+	/** Stage name for error reporting (e.g., 'enriching', 'transferring') */
+	readonly stage: string
+	/** Optional step name for error reporting (e.g., 'custom', 'production') */
+	readonly step?: string
+	/** Optional preset name for error reporting
+	 * (e.g., 'custom', 'production', 'development') */
+	readonly preset?: string
+	/** Optional errors port for error reporting */
+	readonly errors?: Errors
+}
+
+/**
+ * Create an error boundary function for logging service stages.
+ * Wraps operations with standardized error handling that reports errors
+ * via createServiceErrorReporter() and prevents errors from propagating.
+ *
+ * @see {@link ../../ARCHITECTURE.md | ARCHITECTURE.md} for error handling pattern decision tree
+ *
+ * **When to use:** Logging pipeline operations that need error reporting.
+ * Use `createSafeObserve()` for errors service observability instead.
+ *
+ * **When Silent Failures Are Acceptable:**
+ * - Logging pipeline operations (enriching, formatting, transferring)
+ * - Logging must never throw - it's a fire-and-forget operation
+ * - Error reporting itself (to avoid infinite loops)
+ * - Observable hooks and callbacks (to prevent breaking main flow)
+ *
+ * @param options - Error boundary options
+ * @returns Error handler function that never throws
+ *
+ * @example
+ * ```ts
+ * const onError = createErrorBoundary({
+ *   stage: 'enriching',
+ *   step: 'custom',
+ *   errors
+ * })
+ *
+ * try {
+ *   // Some operation that might fail
+ *   await someOperation()
+ * } catch (error) {
+ *   onError(error) // Reports error but doesn't throw
+ * }
+ * ```
+ */
+export function createErrorBoundary(options: ErrorBoundaryOptions): (error: unknown) => void {
+
+	return createEngineErrorBoundary({
+		serviceName: 'logging',
+		stage: options.stage,
+		...(options.step ? {step: options.step} : {}),
+		...(options.preset ? {preset: options.preset} : {}),
+		...(options.errors ? {errors: options.errors} : {})
+	})
+}
+
+/**
+ * Create a wrapper function that executes an operation within an error boundary.
+ * If the operation throws, the error is caught and reported, but not rethrown.
+ *
+ * **Use Cases:**
+ * - Wrapping async operations in logging pipeline
+ * - Wrapping callbacks that must not throw
+ * - Wrapping observable hooks
+ *
+ * @param operation - The operation to execute
+ * @param options - Error boundary options
+ * @returns Promise that resolves even if operation fails
+ *
+ * @example
+ * ```ts
+ * const safeOperation = createSilentFailure(
+ *   async () => {
+ *     await riskyOperation()
+ *   },
+ *   { stage: 'transferring', preset: 'production', errors }
+ * )
+ *
+ * await safeOperation() // Never throws, errors are reported silently
+ * ```
+ */
+export function createSilentFailure<T>(
+	operation: () => Promise<T> | T,
+	options: ErrorBoundaryOptions
+): Promise<T | undefined> {
+	return createEngineSilentFailure(operation, {
+		serviceName: 'logging',
+		stage: options.stage,
+		...(options.step ? {step: options.step} : {}),
+		...(options.preset ? {preset: options.preset} : {}),
+		...(options.errors ? {errors: options.errors} : {})
+	})
+}
+
+/**
+ * Create a wrapper function that executes an operation and returns a fallback value on error.
+ * Similar to createSilentFailure but allows specifying a fallback value.
+ *
+ * @param operation - The operation to execute
+ * @param fallback - Value to return if operation fails
+ * @param options - Error boundary options
+ * @returns Promise that resolves with operation result or fallback
+ *
+ * @example
+ * ```ts
+ * const result = await createSilentFailureWithFallback(
+ *   async () => await fetchData(),
+ *   { default: 'fallback' },
+ *   { stage: 'enriching', errors }
+ * )
+ * ```
+ */
+export function createSilentFailureWithFallback<T, F>(
+	operation: () => Promise<T> | T,
+	fallback: F,
+	options: ErrorBoundaryOptions
+): Promise<T | F> {
+	return createEngineSilentFailureWithFallback(operation, fallback, {
+		serviceName: 'logging',
+		stage: options.stage,
+		...(options.step ? {step: options.step} : {}),
+		...(options.preset ? {preset: options.preset} : {}),
+		...(options.errors ? {errors: options.errors} : {})
+	})
+}

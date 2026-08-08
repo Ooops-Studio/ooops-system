@@ -1,0 +1,343 @@
+{
+  "name": "@ooopsstudio/core",
+  "description": "Foundation contracts, ports, tokens, and runtime utilities for Ooops System packages.",
+	"version": "0.9.0",
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "sideEffects": false,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ooops-studio/ooops-system.git"
+  },
+  "homepage": "https://github.com/ooops-studio/ooops-system",
+  "bugs": {
+    "url": "https://github.com/ooops-studio/ooops-system/issues"
+  },
+  "engines": {
+    "node": ">=22.14.0"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./runtime": {
+      "types": "./dist/runtime/index.d.ts",
+      "import": "./dist/runtime/index.js"
+    },
+    "./runtime/async/with-timeout": {
+      "types": "./dist/runtime/async/with-timeout.d.ts",
+      "import": "./dist/runtime/async/with-timeout.js"
+    },
+    "./runtime/async/safe-abort-controller": {
+      "types": "./dist/runtime/async/safe-abort-controller.d.ts",
+      "import": "./dist/runtime/async/safe-abort-controller.js"
+    },
+    "./runtime/async/native-promise": {
+      "types": "./dist/runtime/async/native-promise.d.ts",
+      "import": "./dist/runtime/async/native-promise.js"
+    },
+    "./runtime/collections/native-collections": {
+      "types": "./dist/runtime/collections/native-collections.d.ts",
+      "import": "./dist/runtime/collections/native-collections.js"
+    },
+    "./runtime/concurrency": {
+      "types": "./dist/runtime/concurrency.d.ts",
+      "import": "./dist/runtime/concurrency.js"
+    },
+    "./runtime/container": {
+      "types": "./dist/runtime/container.d.ts",
+      "import": "./dist/runtime/container.js"
+    },
+    "./runtime/context": {
+      "types": "./dist/runtime/context.d.ts",
+      "import": "./dist/runtime/context.js"
+    },
+    "./runtime/context/als": {
+      "types": "./dist/runtime/context/als.d.ts",
+      "import": "./dist/runtime/context/als.js"
+    },
+    "./runtime/context/async-context": {
+      "types": "./dist/runtime/context/async-context.d.ts",
+      "import": "./dist/runtime/context/async-context.js"
+    },
+    "./runtime/pipeline": {
+      "types": "./dist/runtime/pipeline.d.ts",
+      "import": "./dist/runtime/pipeline.js"
+    },
+    "./runtime/pipeline/batch-retry": {
+      "types": "./dist/runtime/pipeline/batch-retry.d.ts",
+      "import": "./dist/runtime/pipeline/batch-retry.js"
+    },
+    "./runtime/rate": {
+      "types": "./dist/runtime/rate.d.ts",
+      "import": "./dist/runtime/rate.js"
+    },
+    "./runtime/rate/token-bucket": {
+      "types": "./dist/runtime/rate/token-bucket.d.ts",
+      "import": "./dist/runtime/rate/token-bucket.js"
+    },
+    "./runtime/runtime": {
+      "types": "./dist/runtime/runtime/index.d.ts",
+      "import": "./dist/runtime/runtime/index.js"
+    },
+    "./runtime/runtime/lifecycle-detection": {
+      "types": "./dist/runtime/runtime/lifecycle-detection.d.ts",
+      "import": "./dist/runtime/runtime/lifecycle-detection.js"
+    },
+    "./runtime/runtime/service-error-reporter": {
+      "types": "./dist/runtime/runtime/service-error-reporter.d.ts",
+      "import": "./dist/runtime/runtime/service-error-reporter.js"
+    },
+    "./runtime/time": {
+      "types": "./dist/runtime/time.d.ts",
+      "import": "./dist/runtime/time.js"
+    },
+    "./runtime/time/fixed-clock": {
+      "types": "./dist/runtime/time/fixed-clock.d.ts",
+      "import": "./dist/runtime/time/fixed-clock.js"
+    },
+    "./runtime/time/monotonic-clock": {
+      "types": "./dist/runtime/time/monotonic-clock.d.ts",
+      "import": "./dist/runtime/time/monotonic-clock.js"
+    },
+    "./runtime/time/system-clock": {
+      "types": "./dist/runtime/time/system-clock.d.ts",
+      "import": "./dist/runtime/time/system-clock.js"
+    },
+    "./runtime/tracing": {
+      "types": "./dist/runtime/tracing.d.ts",
+      "import": "./dist/runtime/tracing.js"
+    },
+    "./runtime/tracing/export-otlp": {
+      "types": "./dist/runtime/tracing/export-otlp.d.ts",
+      "import": "./dist/runtime/tracing/export-otlp.js"
+    },
+    "./utils": {
+      "types": "./dist/utils/index.d.ts",
+      "import": "./dist/utils/index.js"
+    },
+    "./utils/async/backoff": {
+      "types": "./dist/utils/async/backoff.d.ts",
+      "import": "./dist/utils/async/backoff.js"
+    },
+    "./utils/byte-size": {
+      "types": "./dist/utils/byte-size.d.ts",
+      "import": "./dist/utils/byte-size.js"
+    },
+    "./utils/clock": {
+      "types": "./dist/utils/clock.d.ts",
+      "import": "./dist/utils/clock.js"
+    },
+    "./utils/compute-error-key": {
+      "types": "./dist/utils/compute-error-key.d.ts",
+      "import": "./dist/utils/compute-error-key.js"
+    },
+    "./utils/error-boundary": {
+      "types": "./dist/utils/error-boundary.d.ts",
+      "import": "./dist/utils/error-boundary.js"
+    },
+    "./utils/error": {
+      "types": "./dist/utils/error/index.d.ts",
+      "import": "./dist/utils/error/index.js"
+    },
+    "./utils/error/normalize-error": {
+      "types": "./dist/utils/error/normalize-error.d.ts",
+      "import": "./dist/utils/error/normalize-error.js"
+    },
+    "./utils/guards": {
+      "types": "./dist/utils/guards/index.d.ts",
+      "import": "./dist/utils/guards/index.js"
+    },
+    "./utils/hashing": {
+      "types": "./dist/utils/hashing.d.ts",
+      "import": "./dist/utils/hashing.js"
+    },
+    "./utils/hashing/simple-hash": {
+      "types": "./dist/utils/hashing/simple-hash.d.ts",
+      "import": "./dist/utils/hashing/simple-hash.js"
+    },
+    "./utils/hashing/stable-hash": {
+      "types": "./dist/utils/hashing/stable-hash.d.ts",
+      "import": "./dist/utils/hashing/stable-hash.js"
+    },
+    "./utils/misc": {
+      "types": "./dist/utils/misc.d.ts",
+      "import": "./dist/utils/misc.js"
+    },
+    "./utils/self-metrics": {
+      "types": "./dist/utils/self-metrics.d.ts",
+      "import": "./dist/utils/self-metrics.js"
+    },
+    "./utils/serialization": {
+      "types": "./dist/utils/serialization.d.ts",
+      "import": "./dist/utils/serialization.js"
+    },
+    "./utils/testing/constants": {
+      "types": "./dist/utils/testing/constants.d.ts",
+      "import": "./dist/utils/testing/constants.js"
+    },
+    "./utils/tracing": {
+      "types": "./dist/utils/tracing.d.ts",
+      "import": "./dist/utils/tracing.js"
+    },
+    "./utils/tracing/ids": {
+      "types": "./dist/utils/tracing/ids.d.ts",
+      "import": "./dist/utils/tracing/ids.js"
+    },
+    "./utils/tracing/propagation": {
+      "types": "./dist/utils/tracing/propagation.d.ts",
+      "import": "./dist/utils/tracing/propagation.js"
+    },
+    "./utils/tracing/sampling": {
+      "types": "./dist/utils/tracing/sampling.d.ts",
+      "import": "./dist/utils/tracing/sampling.js"
+    },
+    "./utils/validation": {
+      "types": "./dist/utils/validation.d.ts",
+      "import": "./dist/utils/validation.js"
+    },
+    "./tokens": {
+      "types": "./dist/tokens/index.d.ts",
+      "import": "./dist/tokens/index.js"
+    },
+    "./contracts/audit": {
+      "types": "./dist/contracts/audit.d.ts",
+      "import": "./dist/contracts/audit.js"
+    },
+    "./contracts/cache": {
+      "types": "./dist/contracts/cache.d.ts",
+      "import": "./dist/contracts/cache.js"
+    },
+    "./contracts/clock": {
+      "types": "./dist/contracts/clock.d.ts",
+      "import": "./dist/contracts/clock.js"
+    },
+    "./contracts/context": {
+      "types": "./dist/contracts/context.d.ts",
+      "import": "./dist/contracts/context.js"
+    },
+    "./contracts/errors": {
+      "types": "./dist/contracts/errors.d.ts",
+      "import": "./dist/contracts/errors.js"
+    },
+    "./contracts/events": {
+      "types": "./dist/contracts/events.d.ts",
+      "import": "./dist/contracts/events.js"
+    },
+    "./contracts/jobs": {
+      "types": "./dist/contracts/jobs.d.ts",
+      "import": "./dist/contracts/jobs.js"
+    },
+    "./contracts/json": {
+      "types": "./dist/contracts/json.d.ts",
+      "import": "./dist/contracts/json.js"
+    },
+    "./contracts/lifecycle": {
+      "types": "./dist/contracts/lifecycle.d.ts",
+      "import": "./dist/contracts/lifecycle.js"
+    },
+    "./contracts/logging": {
+      "types": "./dist/contracts/logging.d.ts",
+      "import": "./dist/contracts/logging.js"
+    },
+    "./contracts/observability-shared": {
+      "types": "./dist/contracts/observability-shared.d.ts",
+      "import": "./dist/contracts/observability-shared.js"
+    },
+    "./contracts/performance": {
+      "types": "./dist/contracts/performance.d.ts",
+      "import": "./dist/contracts/performance.js"
+    },
+    "./contracts/profiling": {
+      "types": "./dist/contracts/profiling.d.ts",
+      "import": "./dist/contracts/profiling.js"
+    },
+    "./contracts/rate-limit": {
+      "types": "./dist/contracts/rate-limit.d.ts",
+      "import": "./dist/contracts/rate-limit.js"
+    },
+    "./contracts/resilience": {
+      "types": "./dist/contracts/resilience.d.ts",
+      "import": "./dist/contracts/resilience.js"
+    },
+    "./contracts/tracing": {
+      "types": "./dist/contracts/tracing.d.ts",
+      "import": "./dist/contracts/tracing.js"
+    },
+    "./ports/audit": {
+      "types": "./dist/ports/audit.d.ts",
+      "import": "./dist/ports/audit.js"
+    },
+    "./ports/cache": {
+      "types": "./dist/ports/cache.d.ts",
+      "import": "./dist/ports/cache.js"
+    },
+    "./ports/errors": {
+      "types": "./dist/ports/errors.d.ts",
+      "import": "./dist/ports/errors.js"
+    },
+    "./ports/events": {
+      "types": "./dist/ports/events.d.ts",
+      "import": "./dist/ports/events.js"
+    },
+    "./ports/jobs": {
+      "types": "./dist/ports/jobs.d.ts",
+      "import": "./dist/ports/jobs.js"
+    },
+    "./ports/lifecycle": {
+      "types": "./dist/ports/lifecycle.d.ts",
+      "import": "./dist/ports/lifecycle.js"
+    },
+    "./ports/logging": {
+      "types": "./dist/ports/logging.d.ts",
+      "import": "./dist/ports/logging.js"
+    },
+    "./ports/metrics": {
+      "types": "./dist/ports/metrics.d.ts",
+      "import": "./dist/ports/metrics.js"
+    },
+    "./ports/performance": {
+      "types": "./dist/ports/performance.d.ts",
+      "import": "./dist/ports/performance.js"
+    },
+    "./ports/profiling": {
+      "types": "./dist/ports/profiling.d.ts",
+      "import": "./dist/ports/profiling.js"
+    },
+    "./ports/ratelimit": {
+      "types": "./dist/ports/ratelimit.d.ts",
+      "import": "./dist/ports/ratelimit.js"
+    },
+    "./ports/resilience": {
+      "types": "./dist/ports/resilience.d.ts",
+      "import": "./dist/ports/resilience.js"
+    },
+    "./ports/tracing": {
+      "types": "./dist/ports/tracing.d.ts",
+      "import": "./dist/ports/tracing.js"
+    },
+    "./utils/public-network-address": {
+      "types": "./dist/utils/public-network-address.d.ts",
+      "import": "./dist/utils/public-network-address.js"
+    }
+  },
+  "files": [
+    "dist",
+    "!dist/**/* 2*"
+  ],
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "build": "tsup",
+    "prepack": "pnpm build",
+    "depcruise": "depcruise --no-config src",
+    "size": "size-limit --config .size-limit.json",
+    "publint": "publint",
+    "attw": "attw --pack --ignore-rules no-resolution --ignore-rules cjs-resolves-to-esm"
+  }
+}

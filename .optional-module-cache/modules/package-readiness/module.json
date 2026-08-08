@@ -1,0 +1,15 @@
+{
+	"id": "package-readiness",
+	"label": "Package readiness",
+	"description": "Advisory or strict release-readiness reports for publishable packages.",
+	"files": [
+		"package-readiness.config.json",
+		"scripts/package-readiness.mjs"
+	],
+	"scripts": [
+		"readiness",
+		"readiness:json",
+		"readiness:strict"
+	],
+	"devDependencies": {}
+}

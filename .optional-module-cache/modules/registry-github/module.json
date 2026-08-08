@@ -1,0 +1,10 @@
+{
+	"id": "registry-github",
+	"label": "GitHub Packages registry support",
+	"description": "Optional GitHub Packages publishing and consumer registry documentation.",
+	"files": [
+		".npmrc.example"
+	],
+	"scripts": [],
+	"devDependencies": {}
+}

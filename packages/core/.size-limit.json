@@ -1,0 +1,6 @@
+[
+	{ "name": "core root", "path": ["dist/index.js"], "limit": "6 KB", "ignore": ["util", "async_hooks"] },
+	{ "name": "core container", "path": ["dist/runtime/container.js"], "limit": "4 KB", "ignore": ["util"] },
+	{ "name": "core batch retry", "path": ["dist/runtime/pipeline/batch-retry.js"], "limit": "8 KB", "ignore": ["util", "async_hooks"] },
+	{ "name": "core error key", "path": ["dist/utils/compute-error-key.js"], "limit": "2 KB", "ignore": ["util"] }
+]

@@ -1,0 +1,67 @@
+{
+	"maxExportSubpathsWarning": 20,
+	"maxExportSubpathsReview": 50,
+	"maxUnpackedSizeWarningKb": 1024,
+	"maxUnpackedSizeReviewKb": 5120,
+	"requiredDocs": [
+		"README.md"
+	],
+	"stabilityLabels": [
+		"stable",
+		"beta",
+		"experimental",
+		"internal"
+	],
+	"packages": {
+		"@ooopsstudio/core": {
+			"maxExportSubpathsWarning": 100,
+			"maxExportSubpathsReview": 120,
+			"ignoredWarningCodes": [
+				"internal-looking-export"
+			]
+		},
+		"@ooopsstudio/errors": {
+			"ignoredWarningCodes": [
+				"debug-statement",
+				"secret-looking-text"
+			]
+		},
+		"@ooopsstudio/logging": {
+			"ignoredWarningCodes": [
+				"debug-statement",
+				"secret-looking-text"
+			]
+		},
+		"@ooopsstudio/lifecycle": {
+			"ignoredWarningCodes": [
+				"secret-looking-text"
+			]
+		},
+		"@ooopsstudio/audit": {
+			"ignoredWarningCodes": [
+				"debug-statement",
+				"secret-looking-text"
+			]
+		},
+		"@ooopsstudio/cache": {
+			"ignoredWarningCodes": [
+				"debug-statement"
+			]
+		},
+		"@ooopsstudio/rate-limit": {
+			"ignoredWarningCodes": [
+				"debug-statement"
+			]
+		},
+		"@ooopsstudio/resilience": {
+			"ignoredWarningCodes": [
+				"debug-statement"
+			]
+		},
+		"@ooopsstudio/jobs": {
+			"ignoredWarningCodes": [
+				"debug-statement"
+			]
+		}
+	}
+}

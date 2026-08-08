@@ -1,0 +1,17 @@
+{
+	"extends": "../../tsconfig.base.json",
+	"compilerOptions": {
+		"rootDir": "..",
+		"outDir": "dist",
+		"types": ["node"],
+		"exactOptionalPropertyTypes": false,
+		"baseUrl": ".",
+		"paths": {
+			"@ooopsstudio/core": ["../core/src/index.ts"],
+			"@ooopsstudio/core/runtime": ["../core/src/runtime/index.ts"],
+			"@ooopsstudio/core/*": ["../core/src/*"]
+		}
+	},
+	"include": ["src"],
+	"exclude": ["dist", "coverage", "node_modules"]
+}

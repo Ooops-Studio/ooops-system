@@ -1,0 +1,91 @@
+{
+	"name": "@ooopsstudio/jobs",
+	"version": "0.9.0",
+	"description": "Bounded task scheduling and durable background job execution for Node.js.",
+	"type": "module",
+	"publishConfig": {
+		"access": "public"
+	},
+	"files": [
+		"dist"
+	],
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js"
+		},
+		"./development": {
+			"types": "./dist/development.d.ts",
+			"import": "./dist/development.js"
+		},
+		"./production": {
+			"types": "./dist/production.d.ts",
+			"import": "./dist/production.js"
+		},
+		"./custom": {
+			"types": "./dist/custom.d.ts",
+			"import": "./dist/custom.js"
+		},
+		"./admin": {
+			"types": "./dist/admin.d.ts",
+			"import": "./dist/admin.js"
+		},
+		"./observability": {
+			"types": "./dist/observability.d.ts",
+			"import": "./dist/observability.js"
+		},
+		"./backends/redis": {
+			"types": "./dist/backends/redis.d.ts",
+			"import": "./dist/backends/redis.js"
+		},
+		"./backends/sql": {
+			"types": "./dist/backends/sql.d.ts",
+			"import": "./dist/backends/sql.js"
+		},
+		"./custom/backends/memory": {
+			"types": "./dist/custom/backends/memory.d.ts",
+			"import": "./dist/custom/backends/memory.js"
+		},
+		"./migrations/redis": {
+			"types": "./dist/migrations/redis.d.ts",
+			"import": "./dist/migrations/redis.js"
+		},
+		"./migrations/sql": {
+			"types": "./dist/migrations/sql.d.ts",
+			"import": "./dist/migrations/sql.js"
+		}
+	},
+	"scripts": {
+		"typecheck": "tsc -p tsconfig.json --noEmit",
+		"build": "tsup",
+		"prepack": "pnpm build",
+		"pack:dry": "pnpm pack --dry-run",
+		"test": "pnpm build && vitest run --exclude 'test/jobs/live/*.integration.test.ts'",
+		"test:integration": "vitest run test/jobs/live/*.integration.test.ts",
+		"size": "node src/jobs/size-audit.mjs",
+		"size:details": "node src/jobs/size-audit.mjs --details",
+		"depcruise": "cd ../.. && depcruise --config .dependency-cruiser.cjs packages/jobs/src",
+		"publint": "publint",
+		"attw": "attw --pack --ignore-rules no-resolution --ignore-rules cjs-resolves-to-esm"
+	},
+	"license": "MIT",
+	"engines": {
+		"node": ">=22.14.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/ooops-studio/ooops-system.git"
+	},
+	"homepage": "https://github.com/ooops-studio/ooops-system",
+	"bugs": {
+		"url": "https://github.com/ooops-studio/ooops-system/issues"
+	},
+	"sideEffects": false,
+	"dependencies": {
+		"@ooopsstudio/core": "workspace:^"
+	},
+	"devDependencies": {
+		"@types/pg": "^8.20.0",
+		"pg": "^8.22.0"
+	}
+}

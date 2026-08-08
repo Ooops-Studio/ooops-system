@@ -1,0 +1,16 @@
+{
+	"maxExportSubpathsWarning": 20,
+	"maxExportSubpathsReview": 50,
+	"maxUnpackedSizeWarningKb": 1024,
+	"maxUnpackedSizeReviewKb": 5120,
+	"requiredDocs": [
+		"README.md"
+	],
+	"stabilityLabels": [
+		"stable",
+		"beta",
+		"experimental",
+		"internal"
+	],
+	"packages": {}
+}

@@ -1,0 +1,50 @@
+{
+	"name": "@ooopsstudio/logging",
+	"version": "0.9.0",
+	"description": "Structured logging service with configurable presets, sinks, delivery, and redaction.",
+	"type": "module",
+	"publishConfig": {
+		"access": "public"
+	},
+	"files": [
+		"dist"
+	],
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js"
+		},
+		"./sinks": {"types": "./dist/sinks/index.d.ts", "import": "./dist/sinks/index.js"},
+		"./development": {"types": "./dist/development.d.ts", "import": "./dist/development.js"},
+		"./production": {"types": "./dist/production.d.ts", "import": "./dist/production.js"},
+		"./custom": {"types": "./dist/custom.d.ts", "import": "./dist/custom.js"},
+		"./public/types": {"types": "./dist/public/types.d.ts", "import": "./dist/public/types.js"},
+		"./public/observability": {"types": "./dist/public/observability.d.ts", "import": "./dist/public/observability.js"}
+	},
+	"scripts": {
+		"typecheck": "tsc -p tsconfig.json --noEmit",
+		"build": "tsup",
+		"test": "vitest run",
+		"size": "node size-audit.mjs",
+		"size:details": "node size-audit.mjs --details",
+		"depcruise": "cd ../.. && depcruise --config .dependency-cruiser.cjs packages/logging/src",
+		"publint": "publint",
+		"attw": "attw --pack --ignore-rules no-resolution --ignore-rules cjs-resolves-to-esm"
+	},
+	"license": "MIT",
+	"engines": {
+		"node": ">=22.14.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/ooops-studio/ooops-system.git"
+	},
+	"homepage": "https://github.com/ooops-studio/ooops-system",
+	"bugs": {
+		"url": "https://github.com/ooops-studio/ooops-system/issues"
+	},
+	"sideEffects": false,
+	"dependencies": {
+		"@ooopsstudio/core": "workspace:^"
+	}
+}

@@ -1,0 +1,18 @@
+{
+	"id": "migration-tools",
+	"label": "Package migration tools",
+	"description": "Scripts for creating packages and copying packages from another monorepo.",
+	"files": [
+		"scripts/create-package.mjs",
+		"scripts/copy-package-from-repo.mjs",
+		"scripts/deprecate-package.mjs",
+		"scripts/smoke-check-package-tools.mjs"
+	],
+	"scripts": [
+		"create:package",
+		"copy:package",
+		"deprecate:package",
+		"smoke:package-tools"
+	],
+	"devDependencies": {}
+}

@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "sourceMap": true,
+    "rootDir": "src",
+    "outDir": "dist",
+    "types": ["node"],
+		"stripInternal": true
+  },
+  "include": ["src"],
+  "exclude": ["dist", "coverage", "node_modules"]
+}

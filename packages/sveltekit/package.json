@@ -1,0 +1,63 @@
+{
+  "name": "@ooopsstudio/sveltekit",
+  "description": "SvelteKit observability adapters and browser actions for Ooops System.",
+	"version": "0.9.0",
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "sideEffects": false,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ooops-studio/ooops-system.git"
+  },
+  "homepage": "https://github.com/ooops-studio/ooops-system",
+  "bugs": {
+    "url": "https://github.com/ooops-studio/ooops-system/issues"
+  },
+  "engines": {
+    "node": ">=22.14.0"
+  },
+  "exports": {
+    "./server": {
+      "types": "./dist/server.d.ts",
+      "import": "./dist/server.js"
+    },
+    "./actions": {
+      "types": "./dist/actions.d.ts",
+      "import": "./dist/actions.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@ooopsstudio/core": "workspace:^",
+    "@ooopsstudio/sdk": "workspace:^"
+  },
+  "peerDependencies": {
+    "@sveltejs/kit": "^2.0.0",
+    "svelte": "^5.0.0"
+  },
+  "devDependencies": {
+    "@sveltejs/kit": "2.70.2",
+    "@sveltejs/vite-plugin-svelte": "6.2.4",
+    "esbuild": "^0.27.7",
+    "svelte": "5.56.6",
+    "vite": "7.3.6"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run && pnpm test:browser-bundle",
+    "test:browser-bundle": "pnpm exec esbuild src/actions.ts --bundle --platform=browser --format=esm --log-level=warning --outfile=/dev/null",
+    "build": "tsup",
+    "prepack": "pnpm build",
+    "pack:dry": "pnpm pack --dry-run",
+    "depcruise": "cd ../.. && depcruise --config .dependency-cruiser.cjs packages/sveltekit/src",
+    "size": "node size-audit.mjs",
+    "publint": "publint",
+    "attw": "attw --pack --ignore-rules no-resolution --ignore-rules cjs-resolves-to-esm"
+  }
+}

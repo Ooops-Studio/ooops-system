@@ -1,0 +1,36 @@
+{
+	"name": "@ooopsstudio/cache",
+	"version": "0.9.0",
+	"description": "Bounded cache-aside runtime with in-memory development and Redis production backends.",
+	"type": "module",
+	"publishConfig": {"access": "public"},
+	"files": ["dist"],
+	"exports": {
+		".": {"types": "./dist/index.d.ts", "import": "./dist/index.js"},
+		"./development": {"types": "./dist/development.d.ts", "import": "./dist/development.js"},
+		"./production": {"types": "./dist/production.d.ts", "import": "./dist/production.js"},
+		"./custom": {"types": "./dist/custom.d.ts", "import": "./dist/custom.js"},
+		"./observability": {"types": "./dist/observability.d.ts", "import": "./dist/observability.js"},
+		"./public/types": {"types": "./dist/public/types.d.ts", "import": "./dist/public/types.js"}
+	},
+	"scripts": {
+		"typecheck": "tsc -p tsconfig.json --noEmit",
+		"build": "tsup",
+		"prepack": "pnpm build",
+		"pack:dry": "pnpm pack --dry-run",
+		"test": "pnpm build && vitest run --exclude 'test/cache/**/*.integration.test.ts'",
+		"test:integration": "vitest run test/cache/features/backends/redis-live.integration.test.ts",
+		"size": "node src/cache/size-audit.mjs",
+		"size:details": "node src/cache/size-audit.mjs --details",
+		"depcruise": "cd ../.. && depcruise --config .dependency-cruiser.cjs packages/cache/src",
+		"publint": "publint",
+		"attw": "attw --pack --ignore-rules no-resolution --ignore-rules cjs-resolves-to-esm"
+	},
+	"license": "MIT",
+	"engines": {"node": ">=22.14.0"},
+	"repository": {"type": "git", "url": "git+https://github.com/ooops-studio/ooops-system.git"},
+	"homepage": "https://github.com/ooops-studio/ooops-system",
+	"bugs": {"url": "https://github.com/ooops-studio/ooops-system/issues"},
+	"sideEffects": false,
+	"dependencies": {"@ooopsstudio/core": "workspace:^"}
+}

@@ -1,0 +1,23 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"type": "object",
+	"required": [
+		"allowedLicenses",
+		"packageExceptions"
+	],
+	"properties": {
+		"allowedLicenses": {
+			"type": "array",
+			"items": {
+				"type": "string"
+			}
+		},
+		"packageExceptions": {
+			"type": "object",
+			"additionalProperties": {
+				"type": "boolean"
+			}
+		}
+	},
+	"additionalProperties": true
+}

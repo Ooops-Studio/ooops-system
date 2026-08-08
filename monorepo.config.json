@@ -1,0 +1,20 @@
+{
+	"$schema": "./schemas/monorepo-config.schema.json",
+	"registryStrategy": "npm",
+	"packageAccess": "public",
+	"publishingMode": "trusted-publishing",
+	"actionPinning": "versions",
+	"preset": "public-strict",
+	"enabledModules": [
+		"dependency-cruiser",
+		"license-policy",
+		"migration-tools",
+		"package-readiness",
+		"publint-attw",
+		"release",
+		"renovate",
+		"security-audit",
+		"size-limit"
+	],
+	"starterPackageDir": "packages/core"
+}

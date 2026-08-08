@@ -1,0 +1,7 @@
+# GitHub Packages consumer auth example.
+# Copy this to ~/.npmrc or a CI npm config only when using GitHub Packages.
+# Do not commit real tokens.
+
+@<your-scope>:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=${GITHUB_PACKAGES_TOKEN}
+always-auth=true

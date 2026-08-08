@@ -1,0 +1,10 @@
+{
+	"id": "renovate",
+	"label": "Renovate dependency automation",
+	"description": "Weekly dependency update automation for npm, pnpm lockfile, and GitHub Actions.",
+	"files": [
+		"renovate.json"
+	],
+	"scripts": [],
+	"devDependencies": {}
+}

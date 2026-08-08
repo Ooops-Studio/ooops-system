@@ -1,0 +1,38 @@
+{
+	"name": "@ooopsstudio/performance",
+	"version": "0.9.0",
+	"description": "Bounded server performance measurement, budgets, runtime monitoring, and event delivery for Ooops System applications.",
+	"type": "module",
+	"publishConfig": {"access": "public"},
+	"files": ["dist"],
+	"exports": {
+		".": {"types": "./dist/index.d.ts", "import": "./dist/index.js"},
+		"./development": {"types": "./dist/development.d.ts", "import": "./dist/development.js"},
+		"./production": {"types": "./dist/production.d.ts", "import": "./dist/production.js"},
+		"./custom": {"types": "./dist/custom.d.ts", "import": "./dist/custom.js"},
+		"./custom/exporters/raw": {"types": "./dist/custom/exporters/raw.d.ts", "import": "./dist/custom/exporters/raw.js"},
+		"./custom/exporters/http": {"types": "./dist/custom/exporters/http.d.ts", "import": "./dist/custom/exporters/http.js"},
+		"./observability": {"types": "./dist/observability.d.ts", "import": "./dist/observability.js"},
+		"./public/types": {"types": "./dist/public/types.d.ts", "import": "./dist/public/types.js"}
+	},
+	"scripts": {
+		"typecheck": "tsc -p tsconfig.json --noEmit",
+		"build": "tsup",
+		"prepack": "pnpm build",
+		"pack:dry": "pnpm pack --dry-run",
+		"test": "pnpm build && vitest run --exclude 'test/performance/integration/**/*.test.ts'",
+		"test:integration": "vitest run test/performance/integration",
+		"size": "node src/performance/size-audit.mjs",
+		"size:details": "node src/performance/size-audit.mjs --details",
+		"depcruise": "cd ../.. && depcruise --config .dependency-cruiser.cjs packages/performance/src",
+		"publint": "publint",
+		"attw": "attw --pack --ignore-rules no-resolution --ignore-rules cjs-resolves-to-esm"
+	},
+	"license": "MIT",
+	"engines": {"node": ">=22.14.0"},
+	"repository": {"type": "git", "url": "git+https://github.com/ooops-studio/ooops-system.git"},
+	"homepage": "https://github.com/ooops-studio/ooops-system",
+	"bugs": {"url": "https://github.com/ooops-studio/ooops-system/issues"},
+	"sideEffects": false,
+	"dependencies": {"@ooopsstudio/core": "workspace:^"}
+}

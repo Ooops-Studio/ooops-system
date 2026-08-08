@@ -1,0 +1,8 @@
+packages:
+  - packages/*
+allowBuilds:
+  '@datadog/pprof': true
+  esbuild: true
+  unrs-resolver: true
+minimumReleaseAgeExclude:
+  - svelte@5.56.6

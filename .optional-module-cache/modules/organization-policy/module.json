@@ -1,0 +1,18 @@
+{
+	"id": "organization-policy",
+	"label": "Organization policy",
+	"description": "Configurable dependency, peer range, import direction, and source-pattern rules.",
+	"files": [
+		"organization-policy.json",
+		"scripts/check-organization-policy.mjs"
+	],
+	"scripts": ["check:organization-policy"],
+	"devDependencies": {},
+	"dependencies": {},
+	"peerDependencies": {},
+	"requires": [],
+	"conflicts": [],
+	"workflowPermissions": {},
+	"validationCommands": ["pnpm check:organization-policy"],
+	"packageArchetypes": []
+}

@@ -1,0 +1,14 @@
+{
+	"id": "license-policy",
+	"label": "License policy",
+	"description": "Dependency license policy, checker script, and schema.",
+	"files": [
+		"license-policy.json",
+		"schemas/license-policy.schema.json",
+		"scripts/check-licenses.mjs"
+	],
+	"scripts": [
+		"check:licenses"
+	],
+	"devDependencies": {}
+}

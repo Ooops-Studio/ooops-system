@@ -1,0 +1,52 @@
+{
+	"name": "@ooopsstudio/metrics",
+	"version": "0.9.0",
+	"description": "Bounded metrics recording, aggregation, Prometheus, and OTLP delivery for Ooops System applications.",
+	"type": "module",
+	"publishConfig": {
+		"access": "public"
+	},
+	"files": [
+		"dist"
+	],
+	"exports": {
+		".": {"types": "./dist/index.d.ts", "import": "./dist/index.js"},
+		"./development": {"types": "./dist/development.d.ts", "import": "./dist/development.js"},
+		"./production": {"types": "./dist/production.d.ts", "import": "./dist/production.js"},
+		"./production/prometheus": {"types": "./dist/production/prometheus.d.ts", "import": "./dist/production/prometheus.js"},
+		"./production/otlp": {"types": "./dist/production/otlp.d.ts", "import": "./dist/production/otlp.js"},
+		"./custom": {"types": "./dist/custom.d.ts", "import": "./dist/custom.js"},
+		"./sinks": {"types": "./dist/sinks/index.d.ts", "import": "./dist/sinks/index.js"},
+		"./sinks/prometheus": {"types": "./dist/sinks/prometheus.d.ts", "import": "./dist/sinks/prometheus.js"},
+		"./sinks/prometheus-http": {"types": "./dist/sinks/prometheus-http.d.ts", "import": "./dist/sinks/prometheus-http.js"},
+		"./sinks/otlp": {"types": "./dist/sinks/otlp.d.ts", "import": "./dist/sinks/otlp.js"},
+		"./public/types": {"types": "./dist/public/types.d.ts", "import": "./dist/public/types.js"}
+	},
+	"scripts": {
+		"typecheck": "tsc -p tsconfig.json --noEmit",
+		"build": "tsup",
+		"test": "vitest run --exclude 'test/integration/**/*.test.ts'",
+		"test:integration": "vitest run test/integration",
+		"size": "node size-audit.mjs",
+		"size:details": "node size-audit.mjs --details",
+		"depcruise": "cd ../.. && depcruise --config .dependency-cruiser.cjs packages/metrics/src",
+		"publint": "publint",
+		"attw": "attw --pack --ignore-rules no-resolution --ignore-rules cjs-resolves-to-esm"
+	},
+	"license": "MIT",
+	"engines": {
+		"node": ">=22.14.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/ooops-studio/ooops-system.git"
+	},
+	"homepage": "https://github.com/ooops-studio/ooops-system",
+	"bugs": {
+		"url": "https://github.com/ooops-studio/ooops-system/issues"
+	},
+	"sideEffects": false,
+	"dependencies": {
+		"@ooopsstudio/core": "workspace:^"
+	}
+}

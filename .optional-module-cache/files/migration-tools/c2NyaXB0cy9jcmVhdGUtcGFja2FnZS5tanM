@@ -1,0 +1,157 @@
+import {access, cp, mkdir, readFile, readdir, rm, writeFile} from 'node:fs/promises'
+import path from 'node:path'
+import process from 'node:process'
+
+const repoRoot = process.cwd()
+const options = parseArgs(process.argv.slice(2))
+const packageName = required(options.name, '--name is required')
+const archetype = options.archetype ?? 'public-package'
+const packageDirName = options.dir ?? unscopedName(packageName)
+const sourceDir = path.join(repoRoot, 'examples', 'package-archetypes', archetype)
+const targetDir = path.join(repoRoot, 'packages', packageDirName)
+const dryRun = options['dry-run'] === true
+const force = options.force === true
+
+await assertDirectory(sourceDir, `Unknown archetype "${archetype}"`)
+assertPackageDirName(packageDirName)
+
+if (dryRun) {
+	console.log(`[dry-run] create package ${packageName}`)
+	console.log(`[dry-run] archetype: ${path.relative(repoRoot, sourceDir)}`)
+	console.log(`[dry-run] target: ${path.relative(repoRoot, targetDir)}`)
+	process.exit(0)
+}
+
+if (await exists(targetDir)) {
+	if (!force) {
+		throw new Error(`Target ${path.relative(repoRoot, targetDir)} already exists. Pass --force to replace it.`)
+	}
+	await rm(targetDir, {recursive: true, force: true})
+}
+
+await mkdir(path.dirname(targetDir), {recursive: true})
+await cp(sourceDir, targetDir, {
+	recursive: true,
+	filter: (source) => !ignoredPath(source)
+})
+
+await rewritePackageManifest(path.join(targetDir, 'package.json'), packageName)
+await replaceTextPlaceholders(targetDir, packageName)
+
+console.log(`Created ${packageName} at ${path.relative(repoRoot, targetDir)} from ${archetype}.`)
+console.log('Next steps:')
+console.log('- Review README.md and package.json metadata.')
+console.log('- Add source/test files if the selected archetype expects them.')
+console.log('- Run pnpm install and pnpm -w validate:ci.')
+
+async function rewritePackageManifest(manifestPath, name) {
+	const rootPkg = JSON.parse(await readFile(path.join(repoRoot, 'package.json'), 'utf8'))
+	const pkg = JSON.parse(await readFile(manifestPath, 'utf8'))
+	const repositoryUrl = rootPkg.repository?.url ?? 'https://github.com/ooops-studio/repo-name.git'
+	const homepage = repositoryUrl.replace(/^git\+/u, '').replace(/\.git$/u, '')
+
+	pkg.name = name
+	pkg.version ??= '0.0.0'
+	pkg.type ??= 'module'
+	pkg.license ??= rootPkg.license ?? 'MIT'
+	pkg.description ??= `${name} package.`
+	pkg.engines ??= {node: rootPkg.engines?.node ?? '>=20'}
+
+	if (pkg.private !== true) {
+		pkg.repository ??= {type: 'git', url: repositoryUrl}
+		pkg.homepage ??= homepage
+		pkg.bugs ??= {url: `${homepage}/issues`}
+	}
+
+	await writeFile(manifestPath, `${JSON.stringify(pkg, null, '\t')}\n`)
+}
+
+async function replaceTextPlaceholders(directory, packageName) {
+	const entries = await readdir(directory, {withFileTypes: true})
+
+	for (const entry of entries) {
+		const filePath = path.join(directory, entry.name)
+
+		if (entry.isDirectory()) {
+			await replaceTextPlaceholders(filePath, packageName)
+			continue
+		}
+
+		if (!isTextFile(filePath)) {
+			continue
+		}
+
+		const source = await readFile(filePath, 'utf8')
+		const next = source
+			.replaceAll('@<your-scope>/<name>', packageName)
+			.replaceAll('<your-scope>/<name>', packageName.replace(/^@/u, ''))
+			.replaceAll('<name>', unscopedName(packageName))
+
+		if (next !== source) {
+			await writeFile(filePath, next)
+		}
+	}
+}
+
+function parseArgs(args) {
+	const parsed = {}
+
+	for (let index = 0; index < args.length; index += 1) {
+		const arg = args[index]
+
+		if (!arg.startsWith('--')) {
+			continue
+		}
+
+		const [key, inlineValue] = arg.slice(2).split('=')
+		parsed[key] = inlineValue ?? (args[index + 1]?.startsWith('--') ? true : args[++index] ?? true)
+	}
+
+	return parsed
+}
+
+function required(value, message) {
+	if (!value) {
+		throw new Error(message)
+	}
+
+	return value
+}
+
+async function assertDirectory(directory, message) {
+	try {
+		const entries = await readdir(directory)
+		if (entries.length >= 0) {
+			return
+		}
+	} catch {
+		throw new Error(message)
+	}
+}
+
+async function exists(target) {
+	try {
+		await access(target)
+		return true
+	} catch {
+		return false
+	}
+}
+
+function assertPackageDirName(value) {
+	if (!value || path.basename(value) !== value || value === '.' || value === '..') {
+		throw new Error('--dir must be a single directory name under packages/.')
+	}
+}
+
+function unscopedName(name) {
+	return name.split('/').at(-1)
+}
+
+function ignoredPath(filePath) {
+	return /(?:^|\/)(?:node_modules|dist|coverage|\.turbo|\.cache)(?:\/|$)/u.test(filePath)
+}
+
+function isTextFile(filePath) {
+	return /\.(?:json|md|ts|tsx|js|mjs|cjs|yml|yaml|txt)$/u.test(filePath)
+}

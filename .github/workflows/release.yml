@@ -1,0 +1,86 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Run release validation without versioning or publishing
+        required: true
+        default: true
+        type: boolean
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          package-manager-cache: false
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate workspace
+        run: pnpm -w validate
+
+  publish:
+    if: >-
+      ${{
+        (github.event_name != 'workflow_dispatch' || !inputs.dry_run) &&
+        vars.NPM_TRUSTED_PUBLISHING_ENABLED == 'true'
+      }}
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      NPM_CONFIG_PROVENANCE: true
+      REGISTRY_STRATEGY: npm
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          package-manager-cache: false
+          registry-url: https://registry.npmjs.org
+
+      - name: Install npm with trusted-publishing support
+        run: npm install --global npm@12.0.2
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Release preflight
+        run: pnpm -w release:preflight
+
+      - name: Publish unpublished package versions
+        run: pnpm -w publish:packages

@@ -1,0 +1,103 @@
+{
+	"name": "@ooopsstudio/events",
+	"version": "0.9.0",
+	"description": "Durable, schema-validated event publication and consumption for Node.js.",
+	"type": "module",
+	"publishConfig": {
+		"access": "public"
+	},
+	"files": [
+		"dist"
+	],
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js"
+		},
+		"./development": {
+			"types": "./dist/development.d.ts",
+			"import": "./dist/development.js"
+		},
+		"./production": {
+			"types": "./dist/production.d.ts",
+			"import": "./dist/production.js"
+		},
+		"./custom": {
+			"types": "./dist/custom.d.ts",
+			"import": "./dist/custom.js"
+		},
+		"./admin": {
+			"types": "./dist/admin.d.ts",
+			"import": "./dist/admin.js"
+		},
+		"./observability": {
+			"types": "./dist/observability.d.ts",
+			"import": "./dist/observability.js"
+		},
+		"./backends/custom": {
+			"types": "./dist/backends/custom.d.ts",
+			"import": "./dist/backends/custom.js"
+		},
+		"./stores/memory": {
+			"types": "./dist/stores/memory.d.ts",
+			"import": "./dist/stores/memory.js"
+		},
+		"./stores/postgres": {
+			"types": "./dist/stores/postgres.d.ts",
+			"import": "./dist/stores/postgres.js"
+		},
+		"./migrations/postgres": {
+			"types": "./dist/migrations/postgres.d.ts",
+			"import": "./dist/migrations/postgres.js"
+		},
+		"./transports/custom": {
+			"types": "./dist/transports/custom.d.ts",
+			"import": "./dist/transports/custom.js"
+		},
+		"./transports/http": {
+			"types": "./dist/transports/http.d.ts",
+			"import": "./dist/transports/http.js"
+		},
+		"./transports/kafka": {
+			"types": "./dist/transports/kafka.d.ts",
+			"import": "./dist/transports/kafka.js"
+		},
+		"./transports/nats": {
+			"types": "./dist/transports/nats.d.ts",
+			"import": "./dist/transports/nats.js"
+		}
+	},
+	"scripts": {
+		"typecheck": "tsc -p tsconfig.json --noEmit",
+		"build": "tsup",
+		"prepack": "pnpm build",
+		"pack:dry": "pnpm pack --dry-run",
+		"test": "pnpm build && vitest run --exclude 'test/events/**/*.integration.test.ts'",
+		"test:integration": "vitest run test/events/postgres-live.integration.test.ts",
+		"size": "node src/events/size-audit.mjs",
+		"size:details": "node src/events/size-audit.mjs --details",
+		"depcruise": "cd ../.. && depcruise --config .dependency-cruiser.cjs packages/events/src",
+		"publint": "publint",
+		"attw": "attw --pack --ignore-rules no-resolution --ignore-rules cjs-resolves-to-esm"
+	},
+	"license": "MIT",
+	"engines": {
+		"node": ">=22.14.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/ooops-studio/ooops-system.git"
+	},
+	"homepage": "https://github.com/ooops-studio/ooops-system",
+	"bugs": {
+		"url": "https://github.com/ooops-studio/ooops-system/issues"
+	},
+	"sideEffects": false,
+	"dependencies": {
+		"@ooopsstudio/core": "workspace:^"
+	},
+	"devDependencies": {
+		"@types/pg": "^8.20.0",
+		"pg": "^8.22.0"
+	}
+}

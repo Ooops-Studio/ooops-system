@@ -1,0 +1,102 @@
+{
+  "name": "@ooopsstudio/sdk",
+  "description": "Framework-agnostic developer helpers built on top of @ooopsstudio/core.",
+	"version": "0.9.0",
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "sideEffects": false,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ooops-studio/ooops-system.git"
+  },
+  "homepage": "https://github.com/ooops-studio/ooops-system",
+  "bugs": {
+    "url": "https://github.com/ooops-studio/ooops-system/issues"
+  },
+  "engines": {
+    "node": ">=22.14.0"
+  },
+  "dependencies": {
+    "@ooopsstudio/core": "workspace:^"
+  },
+  "peerDependencies": {
+    "@grafana/faro-web-sdk": "2.3.1",
+    "web-vitals": "^5.1.0",
+    "zod": "^4.1.5"
+  },
+  "peerDependenciesMeta": {
+    "@grafana/faro-web-sdk": {
+      "optional": true
+    },
+    "web-vitals": {
+      "optional": true
+    },
+    "zod": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@grafana/faro-web-sdk": "2.3.1",
+    "esbuild": "^0.27.7",
+    "web-vitals": "5.2.0",
+    "zod": "4.3.6"
+  },
+  "exports": {
+    "./events": {
+      "types": "./dist/events.d.ts",
+      "import": "./dist/events.js"
+    },
+    "./events/zod": {
+      "types": "./dist/events/zod.d.ts",
+      "import": "./dist/events/zod.js"
+    },
+    "./events/asyncapi": {
+      "types": "./dist/events/asyncapi.d.ts",
+      "import": "./dist/events/asyncapi.js"
+    },
+    "./cache": {
+      "types": "./dist/cache.d.ts",
+      "import": "./dist/cache.js"
+    },
+    "./jobs": {
+      "types": "./dist/jobs.d.ts",
+      "import": "./dist/jobs.js"
+    },
+    "./faro-browser": {
+      "types": "./dist/faro-browser.d.ts",
+      "import": "./dist/faro-browser.js"
+    },
+    "./performance": {
+      "types": "./dist/performance.d.ts",
+      "import": "./dist/performance.js"
+    },
+    "./performance-browser": {
+      "types": "./dist/performance-browser.d.ts",
+      "import": "./dist/performance-browser.js"
+    },
+    "./performance-db": {
+      "types": "./dist/performance-db.d.ts",
+      "import": "./dist/performance-db.js"
+    }
+  },
+	"files": [
+		"dist",
+		"!dist/**/* *"
+	],
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run && pnpm test:browser-bundle",
+    "test:browser-bundle": "pnpm exec esbuild src/performance-browser.ts --bundle --platform=browser --format=esm --log-level=warning --outfile=/dev/null && pnpm exec esbuild src/faro-browser.ts --bundle --platform=browser --format=esm --log-level=warning --outfile=/dev/null",
+    "build": "tsup",
+    "prepack": "pnpm build",
+    "pack:dry": "pnpm pack --dry-run",
+    "depcruise": "cd ../.. && depcruise --config .dependency-cruiser.cjs packages/sdk/src",
+    "size": "node size-audit.mjs",
+    "publint": "publint",
+    "attw": "attw --pack --ignore-rules no-resolution --ignore-rules cjs-resolves-to-esm"
+  }
+}

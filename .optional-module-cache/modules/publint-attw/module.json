@@ -1,0 +1,15 @@
+{
+	"id": "publint-attw",
+	"label": "Publish compatibility checks",
+	"description": "publint and Are The Types Wrong package compatibility checks.",
+	"files": [],
+	"scripts": [
+		"publint",
+		"attw",
+		"check:packed-artifacts"
+	],
+	"devDependencies": {
+		"@arethetypeswrong/cli": "^0.18.2",
+		"publint": "^0.3.13"
+	}
+}

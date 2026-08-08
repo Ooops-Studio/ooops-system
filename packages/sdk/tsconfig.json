@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "sourceMap": true,
+    "outDir": "dist",
+    "types": ["node"],
+		"stripInternal": true,
+		"paths": {
+			"@ooopsstudio/core": ["../core/src/index.ts"],
+			"@ooopsstudio/core/*": ["../core/src/*"]
+		}
+  },
+  "include": ["src"],
+  "exclude": ["dist", "coverage", "node_modules"]
+}
