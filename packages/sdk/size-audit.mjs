@@ -14,7 +14,7 @@ const scenarios = [
 	['event definitions', ENTRY.events, 8_000, 3_000], ['Zod event adapter', ENTRY.eventsZod, 314_000, 53_000],
 	['AsyncAPI', ENTRY.asyncapi, 15_000, 5_000],
 	['performance core', ENTRY.performance, 5_000, 2_000], ['performance browser', ENTRY.browser, 17_000, 6_000],
-	['DB adapters', ENTRY.db, 6_000, 3_000], ['Faro', ENTRY.faro, 112_000, 37_000]
+	['DB adapters', ENTRY.db, 6_000, 3_000], ['Faro', ENTRY.faro, 118_000, 38_000]
 ]
 const forbidden = {
 	[ENTRY.cache]: ['node_modules/zod/', 'node_modules/@grafana/', 'node_modules/web-vitals/'],

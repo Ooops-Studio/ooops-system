@@ -4,8 +4,14 @@
  */
 
 import {
+	CSPInstrumentation,
+	ConsoleInstrumentation,
+	ErrorsInstrumentation,
 	getWebInstrumentations,
 	initializeFaro,
+	NavigationInstrumentation,
+	PerformanceInstrumentation,
+	SessionInstrumentation,
 	type BrowserConfig,
 	type EventAttributes,
 	type Instrumentation,
@@ -13,7 +19,10 @@ import {
 	type MetaAttributes,
 	type MetaUser,
 	type PushErrorOptions,
-	type PushLogOptions
+	type PushLogOptions,
+	UserActionInstrumentation,
+	ViewInstrumentation,
+	WebVitalsInstrumentation
 } from '@grafana/faro-web-sdk'
 import type {PerformancePort} from '@ooopsstudio/core/ports/performance'
 
@@ -30,7 +39,8 @@ import {isRuntimeProxy} from './runtime-object'
 
 const FARO_INIT_FIELDS = [
 	'config', 'enableDefaultInstrumentations', 'captureConsole',
-	'enablePerformanceInstrumentation', 'enableContentSecurityPolicyInstrumentation'
+	'enablePerformanceInstrumentation', 'enableContentSecurityPolicyInstrumentation',
+	'enableErrorsInstrumentation', 'enableUserActionInstrumentation'
 ]
 const FARO_CONFIG_FIELDS = ['url', 'apiKey', 'app']
 const FARO_APP_FIELDS = ['name', 'version', 'environment']
@@ -113,6 +123,10 @@ export interface FaroBrowserInitOptions {
 	readonly captureConsole?: boolean
 	readonly enablePerformanceInstrumentation?: boolean
 	readonly enableContentSecurityPolicyInstrumentation?: boolean
+	/** Enables global error and unhandled-rejection capture. */
+	readonly enableErrorsInstrumentation?: boolean
+	/** Enables automatic DOM user-action capture. */
+	readonly enableUserActionInstrumentation?: boolean
 }
 
 export interface FaroBrowserPerformanceBridgeOptions {
@@ -174,7 +188,9 @@ const snapshotFaroInitOptions = (value: FaroBrowserInitOptions): FaroBrowserInit
 		enableDefaultInstrumentations: faroFlag(input.enableDefaultInstrumentations),
 		captureConsole: faroFlag(input.captureConsole),
 		enablePerformanceInstrumentation: faroFlag(input.enablePerformanceInstrumentation),
-		enableContentSecurityPolicyInstrumentation: faroFlag(input.enableContentSecurityPolicyInstrumentation)
+		enableContentSecurityPolicyInstrumentation: faroFlag(input.enableContentSecurityPolicyInstrumentation),
+		enableErrorsInstrumentation: faroFlag(input.enableErrorsInstrumentation),
+		enableUserActionInstrumentation: faroFlag(input.enableUserActionInstrumentation)
 	} as FaroBrowserInitOptions
 }
 
@@ -217,8 +233,27 @@ function buildInitKey(options: FaroBrowserInitOptions): string {
 		enableDefaultInstrumentations: !!options.enableDefaultInstrumentations,
 		captureConsole: !!options.captureConsole,
 		enablePerformanceInstrumentation: !!options.enablePerformanceInstrumentation,
-		enableContentSecurityPolicyInstrumentation: !!options.enableContentSecurityPolicyInstrumentation
+		enableContentSecurityPolicyInstrumentation: !!options.enableContentSecurityPolicyInstrumentation,
+		enableErrorsInstrumentation: options.enableErrorsInstrumentation,
+		enableUserActionInstrumentation: options.enableUserActionInstrumentation
 	})
+}
+
+function buildConsentScopedInstrumentations(options: FaroBrowserInitOptions): Instrumentation[] {
+	const instrumentations: Instrumentation[] = []
+	if (options.enablePerformanceInstrumentation) {
+		// Start this first so the current navigation can be observed.
+		instrumentations.push(new PerformanceInstrumentation())
+	}
+	instrumentations.push(new SessionInstrumentation(), new ViewInstrumentation())
+	if (options.enablePerformanceInstrumentation) {
+		instrumentations.push(new WebVitalsInstrumentation(), new NavigationInstrumentation())
+	}
+	if (options.enableErrorsInstrumentation) instrumentations.push(new ErrorsInstrumentation())
+	if (options.enableContentSecurityPolicyInstrumentation) instrumentations.push(new CSPInstrumentation())
+	if (options.enableUserActionInstrumentation) instrumentations.push(new UserActionInstrumentation())
+	if (options.captureConsole) instrumentations.push(new ConsoleInstrumentation())
+	return instrumentations
 }
 
 function buildBrowserConfig(options: FaroBrowserInitOptions): BrowserConfig {
@@ -232,11 +267,16 @@ function buildBrowserConfig(options: FaroBrowserInitOptions): BrowserConfig {
 		...(options.config.apiKey ? {apiKey: options.config.apiKey} : {})
 	}
 
-	const instrumentations = options.enableDefaultInstrumentations ? getWebInstrumentations({
-		captureConsole: !!options.captureConsole,
-		enablePerformanceInstrumentation: !!options.enablePerformanceInstrumentation,
-		enableContentSecurityPolicyInstrumentation: !!options.enableContentSecurityPolicyInstrumentation
-	}) as Instrumentation[] : []
+	const useConsentScopedInstrumentations =
+		options.enableErrorsInstrumentation !== undefined ||
+		options.enableUserActionInstrumentation !== undefined
+	const instrumentations = !options.enableDefaultInstrumentations ? [] :
+		useConsentScopedInstrumentations ? buildConsentScopedInstrumentations(options) :
+			getWebInstrumentations({
+				captureConsole: !!options.captureConsole,
+				enablePerformanceInstrumentation: !!options.enablePerformanceInstrumentation,
+				enableContentSecurityPolicyInstrumentation: !!options.enableContentSecurityPolicyInstrumentation
+			}) as Instrumentation[]
 	return {...config, instrumentations}
 }
 
