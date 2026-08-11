@@ -1,5 +1,11 @@
 # @ooopsstudio/sdk
 
+## 0.9.1
+
+### Patch Changes
+
+- Scope browser Faro instrumentations to the consented telemetry categories and align the SDK peer dependency with Faro core.
+
 ## 0.1.0
 
 - Added schema-agnostic immutable event definitions and isolated Zod behind `events/zod`.

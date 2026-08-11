@@ -13,6 +13,15 @@ const faroMock = vi.hoisted(() => {
 	const pushLog = vi.fn()
 	const setUser = vi.fn()
 	const getWebInstrumentations = vi.fn(() => [{name: 'web-instrumentation'}])
+	const PerformanceInstrumentation = class PerformanceInstrumentation {}
+	const SessionInstrumentation = class SessionInstrumentation {}
+	const ViewInstrumentation = class ViewInstrumentation {}
+	const WebVitalsInstrumentation = class WebVitalsInstrumentation {}
+	const NavigationInstrumentation = class NavigationInstrumentation {}
+	const ErrorsInstrumentation = class ErrorsInstrumentation {}
+	const CSPInstrumentation = class CSPInstrumentation {}
+	const UserActionInstrumentation = class UserActionInstrumentation {}
+	const ConsoleInstrumentation = class ConsoleInstrumentation {}
 	const initializeFaro = vi.fn(() => ({
 		api: {
 			pushEvent,
@@ -28,6 +37,15 @@ const faroMock = vi.hoisted(() => {
 		setUser,
 		getWebInstrumentations,
 		initializeFaro,
+		PerformanceInstrumentation,
+		SessionInstrumentation,
+		ViewInstrumentation,
+		WebVitalsInstrumentation,
+		NavigationInstrumentation,
+		ErrorsInstrumentation,
+		CSPInstrumentation,
+		UserActionInstrumentation,
+		ConsoleInstrumentation,
 		LogLevel: {
 			TRACE: 'trace',
 			DEBUG: 'debug',
@@ -42,7 +60,16 @@ const faroMock = vi.hoisted(() => {
 vi.mock('@grafana/faro-web-sdk', () => ({
 	getWebInstrumentations: faroMock.getWebInstrumentations,
 	initializeFaro: faroMock.initializeFaro,
-	LogLevel: faroMock.LogLevel
+	LogLevel: faroMock.LogLevel,
+	PerformanceInstrumentation: faroMock.PerformanceInstrumentation,
+	SessionInstrumentation: faroMock.SessionInstrumentation,
+	ViewInstrumentation: faroMock.ViewInstrumentation,
+	WebVitalsInstrumentation: faroMock.WebVitalsInstrumentation,
+	NavigationInstrumentation: faroMock.NavigationInstrumentation,
+	ErrorsInstrumentation: faroMock.ErrorsInstrumentation,
+	CSPInstrumentation: faroMock.CSPInstrumentation,
+	UserActionInstrumentation: faroMock.UserActionInstrumentation,
+	ConsoleInstrumentation: faroMock.ConsoleInstrumentation
 }))
 
 vi.mock('web-vitals', () => ({
@@ -134,6 +161,31 @@ describe('faro browser helpers', () => {
 		expect(faroMock.getWebInstrumentations).not.toHaveBeenCalled()
 		expect(faroMock.initializeFaro).toHaveBeenLastCalledWith({
 			url: 'https://faro.example.com/b', app: {name: 'studio'}, instrumentations: []
+		})
+	})
+
+	it('scopes automatic instrumentations to the permitted telemetry categories', () => {
+		initFaroBrowser({
+			config: {url: 'https://faro.example.com/collect', app: {name: 'studio'}},
+			enableDefaultInstrumentations: true,
+			captureConsole: false,
+			enablePerformanceInstrumentation: true,
+			enableContentSecurityPolicyInstrumentation: false,
+			enableErrorsInstrumentation: false,
+			enableUserActionInstrumentation: false
+		})
+
+		expect(faroMock.getWebInstrumentations).not.toHaveBeenCalled()
+		expect(faroMock.initializeFaro).toHaveBeenCalledWith({
+			url: 'https://faro.example.com/collect',
+			app: {name: 'studio'},
+			instrumentations: [
+				expect.any(faroMock.PerformanceInstrumentation),
+				expect.any(faroMock.SessionInstrumentation),
+				expect.any(faroMock.ViewInstrumentation),
+				expect.any(faroMock.WebVitalsInstrumentation),
+				expect.any(faroMock.NavigationInstrumentation)
+			]
 		})
 	})
 
