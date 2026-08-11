@@ -79,6 +79,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build publish artifacts
+        run: pnpm -w build
+
+      - name: Verify publish artifacts
+        run: pnpm -w check:packed-artifacts
+
       - name: Release preflight
         run: pnpm -w release:preflight
 

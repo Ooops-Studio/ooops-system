@@ -1,6 +1,6 @@
 {
 	"name": "@ooopsstudio/errors",
-	"version": "0.9.1",
+	"version": "0.9.2",
 	"description": "Error normalization, classification, redaction, reporting, and Sentry delivery for Ooops System applications.",
 	"type": "module",
 	"publishConfig": {

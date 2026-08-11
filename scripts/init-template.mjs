@@ -616,6 +616,13 @@ function createReleaseWorkflow(moduleOptions) {
         run: npm install --global npm@12.0.2
 `
 		: ''
+	const packedArtifactVerification = moduleOptions.enabled.has('publint-attw')
+		? `
+      - name: Verify publish artifacts
+        if: \${{ github.event_name != 'workflow_dispatch' || !inputs.dry_run }}
+        run: pnpm -w check:packed-artifacts
+`
+		: ''
 	return applyActionPinning(`name: Release
 
 on:
@@ -678,6 +685,10 @@ ${trustedPublishingSetup}
         run: |
           echo "Release validation completed. Publishing was skipped because dry_run=true."
 
+      - name: Build publish artifacts
+        if: \${{ github.event_name != 'workflow_dispatch' || !inputs.dry_run }}
+        run: pnpm -w build
+${packedArtifactVerification}
       - name: Version and publish packages
         if: \${{ github.event_name != 'workflow_dispatch' || !inputs.dry_run }}
         uses: changesets/action@v1
