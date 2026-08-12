@@ -822,10 +822,10 @@ Checklist:
 	if (moduleOptions.enabled.has('migration-tools')) {
 		sections.push(`## For internal package splits
 
-This template can extract reusable packages from larger monorepos into focused package repos, for example \`ooops-suite\` to \`ooops-stage-packages\` or \`ooops-analytics-packages\`.
+This template can extract reusable packages from larger monorepos into focused package repos, for example \`ooops-suite\` to \`ooops-cms-packages\` or \`ooops-analytics-packages\`.
 
 \`\`\`sh
-pnpm -w copy:package -- --from ../ooops-suite/packages/stage-api
+pnpm -w copy:package -- --from ../ooops-cms-packages/packages/cms-api
 pnpm -w create:package -- --name @your-scope/new-package --archetype public-package
 pnpm -w deprecate:package -- --package @your-scope/old-package
 \`\`\`
