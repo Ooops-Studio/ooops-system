@@ -74,6 +74,16 @@ export interface SaturationAlert {
 	severity: 'info' | 'warn' | 'critical'
 	value: number
 	threshold: number
+	/** Current bounded saturation state when the producer reports transitions. */
+	state?: 'healthy' | 'info' | 'warn' | 'critical'
+	/** Previous state for transition-aware observability bridges. */
+	previousState?: 'healthy' | 'info' | 'warn' | 'critical'
+	/** True when this is a bounded reminder rather than a state transition. */
+	reminder?: boolean
+	/** Aggregation used to evaluate the threshold. */
+	aggregation?: 'instant' | 'p95'
+	/** Number of samples included in the aggregation window. */
+	sampleCount?: number
 }
 
 export interface BudgetStatus {

@@ -17,9 +17,9 @@ const OPTIONAL = Object.freeze({
 const SCENARIOS = Object.freeze([
 	{name: 'root registration initial load', entry: ENTRY.root, optional: [], minified: 4_500, brotli: 1_750,
 		excluded: [ENTRY.development, ENTRY.production, ENTRY.custom]},
-	{name: 'development core', entry: ENTRY.development, optional: [OPTIONAL.monitors], minified: 36_600, brotli: 12_620,
+	{name: 'development core', entry: ENTRY.development, optional: [OPTIONAL.monitors], minified: 37_300, brotli: 13_000,
 		excluded: [OPTIONAL.budgets, OPTIONAL.n1, OPTIONAL.delivery]},
-	{name: 'production core', entry: ENTRY.production, optional: [OPTIONAL.monitors], minified: 36_450, brotli: 12_550,
+	{name: 'production core', entry: ENTRY.production, optional: [OPTIONAL.monitors], minified: 37_150, brotli: 12_950,
 		excluded: [OPTIONAL.budgets, OPTIONAL.n1, OPTIONAL.delivery]},
 	{name: 'custom measurement-only', entry: ENTRY.custom, optional: [], minified: 33_200, brotli: 11_570,
 		excluded: [OPTIONAL.monitors, OPTIONAL.budgets, OPTIONAL.n1, OPTIONAL.delivery]},

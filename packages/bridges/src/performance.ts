@@ -19,6 +19,7 @@ export function wirePerformanceObservability(
 	const configured = snapshotBridgeOptions(options, ['logger', 'errors', 'metrics', 'tracer'] as const)
 	const increment = createBoundedBridgeInvoker(captureBridgeMethod<NonNullable<MetricsPort['increment']>>(configured.metrics, 'increment'))
 	const record = createBoundedBridgeInvoker(captureBridgeMethod<NonNullable<MetricsPort['record']>>(configured.metrics, 'record'))
+	const info = createBoundedBridgeInvoker(captureBridgeMethod<Logging['info']>(configured.logger, 'info'))
 	const warn = createBoundedBridgeInvoker(captureBridgeMethod<Logging['warn']>(configured.logger, 'warn'))
 	const breadcrumb = createBoundedBridgeInvoker(captureBridgeMethod<NonNullable<Tracing['addBreadcrumb']>>(configured.tracer, 'addBreadcrumb'))
 	const getActiveSpan = captureBridgeMethod<Tracing['getActiveSpan']>(configured.tracer, 'getActiveSpan')
@@ -37,10 +38,41 @@ export function wirePerformanceObservability(
 				warn('Performance budget violated', {budget_name: item.violation.name, target: item.violation.target, actual: item.violation.actual})
 				breadcrumb({category: 'performance.budget', message: 'Performance budget violated', level: 'warn', data: {name: item.violation.name, target: item.violation.target, actual: item.violation.actual}})
 				break
-			case 'saturation_alert':
-				warn('Performance saturation detected', {reason: item.alert.reason, severity: item.alert.severity, value: item.alert.value, threshold: item.alert.threshold})
-				breadcrumb({category: 'performance.saturation', message: 'Performance saturation detected', level: item.alert.severity, data: {reason: item.alert.reason, value: item.alert.value, threshold: item.alert.threshold}})
+			case 'saturation_alert': {
+				const state = item.alert.state
+				const previousState = item.alert.previousState
+				const attributes = {
+					reason: item.alert.reason,
+					severity: item.alert.severity,
+					value: item.alert.value,
+					threshold: item.alert.threshold,
+					...(state ? {state} : {}),
+					...(previousState ? {previous_state: previousState} : {}),
+					...(item.alert.aggregation ? {aggregation: item.alert.aggregation} : {}),
+					...(item.alert.sampleCount !== undefined ? {sample_count: item.alert.sampleCount} : {})
+				}
+				const wasActive = previousState === 'warn' || previousState === 'critical'
+				const isActive = state === 'warn' || state === 'critical'
+				if (state && wasActive && !isActive) {
+					info('Performance saturation recovered', attributes)
+					breadcrumb({category: 'performance.saturation', message: 'Performance saturation recovered', level: 'info', data: attributes})
+				} else if (state === 'info') {
+					// Informational transitions remain available to metrics consumers but
+					// do not create operational log noise.
+				} else if (item.alert.reminder) {
+					warn('Performance saturation persists', attributes)
+					breadcrumb({category: 'performance.saturation', message: 'Performance saturation persists', level: item.alert.severity, data: attributes})
+				} else if (state && isActive) {
+					warn('Performance saturation state changed', attributes)
+					breadcrumb({category: 'performance.saturation', message: 'Performance saturation state changed', level: item.alert.severity, data: attributes})
+				} else if (!state) {
+					// Preserve mappings for saturation producers that have not adopted
+					// transition metadata yet.
+					warn('Performance saturation detected', attributes)
+					breadcrumb({category: 'performance.saturation', message: 'Performance saturation detected', level: item.alert.severity, data: attributes})
+				}
 				break
+			}
 			case 'dimension_explosion': case 'dimension_drop': warn('Performance dimensions dropped', {metric_name: item.metricName, reason: item.reason}); break
 			case 'n1_pattern':
 				warn('N+1 pattern detected', {pattern_type: item.pattern.type, duplicate_count: item.pattern.duplicateCount, query_signature: item.pattern.querySignature})

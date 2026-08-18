@@ -11,6 +11,9 @@ describe('createEventLoopMonitor', () => {
 		expect(() => createEventLoopMonitor({clock, intervalMs: 0})).toThrow('intervalMs must be between')
 		expect(() => createEventLoopMonitor({clock, intervalMs: Number.NaN})).toThrow('intervalMs must be between')
 		expect(() => createEventLoopMonitor({clock, intervalMs: 2_147_483_648})).toThrow('intervalMs must be between')
+		expect(() => createEventLoopMonitor({clock, minimumSamples: 0})).toThrow('minimumSamples must be between')
+		expect(() => createEventLoopMonitor({clock, minimumSamples: 101})).toThrow('minimumSamples must be between')
+		expect(() => createEventLoopMonitor({clock, reminderIntervalMs: -1})).toThrow('reminderIntervalMs must be between')
 	})
 
 	it('rejects invalid or unordered thresholds', () => {
@@ -322,6 +325,7 @@ describe('createEventLoopMonitor', () => {
 		const monitor = createEventLoopMonitor({
 			clock,
 			intervalMs: 50,
+			minimumSamples: 1,
 			onSaturationAlert,
 			thresholds: {
 				critical: 0.001 // Very low threshold
@@ -349,6 +353,7 @@ describe('createEventLoopMonitor', () => {
 		const monitor = createEventLoopMonitor({
 			clock,
 			intervalMs: 50,
+			minimumSamples: 1,
 			onSaturationAlert,
 			thresholds: {
 				warn: 0.001,
@@ -375,6 +380,7 @@ describe('createEventLoopMonitor', () => {
 		const monitor = createEventLoopMonitor({
 			clock,
 			intervalMs: 50,
+			minimumSamples: 1,
 			onSaturationAlert,
 			thresholds: {
 				info: 0.001,
@@ -513,6 +519,7 @@ describe('createEventLoopMonitor', () => {
 		const monitor = createEventLoopMonitor({
 			clock,
 			intervalMs: 10,
+			minimumSamples: 1,
 			onPerfEvent: () => { throw new Error('event callback failed') },
 			onSaturationAlert: () => { throw new Error('alert callback failed') },
 			thresholds: {critical: 0.001}
@@ -575,5 +582,109 @@ describe('createEventLoopMonitor', () => {
 		// With samples, p95 and p99 should be calculated
 		expect(stats?.p95).toBeGreaterThanOrEqual(0)
 		expect(stats?.p99).toBeGreaterThanOrEqual(0)
+	})
+
+	function runDeterministicLagSamples(
+		lags: readonly number[],
+		onSaturationAlert: (alert: SaturationAlert) => void,
+		options: Pick<Parameters<typeof createEventLoopMonitor>[0], 'minimumSamples' | 'reminderIntervalMs' | 'thresholds'> = {}
+	): void {
+		const immediates: Array<() => void> = []
+		const timers: Array<() => void> = []
+		const immediateSpy = vi.spyOn(globalThis, 'setImmediate').mockImplementation((callback) => {
+			immediates.push(callback as () => void)
+			return 1 as unknown as ReturnType<typeof setImmediate>
+		})
+		const timeoutSpy = vi.spyOn(globalThis, 'setTimeout').mockImplementation((callback) => {
+			timers.push(callback as () => void)
+			return 2 as unknown as ReturnType<typeof setTimeout>
+		})
+		let currentLag = 0
+		let highResolutionBase = 0n
+		let readingStart = true
+		let wallTime = 0
+		const monitor = createEventLoopMonitor({
+			clock: {
+				now: () => wallTime += 1000,
+				nowHr: () => {
+					if (readingStart) {
+						readingStart = false
+						return highResolutionBase
+					}
+					readingStart = true
+					const executed = highResolutionBase + BigInt(Math.round(currentLag * 1_000_000))
+					highResolutionBase += 1_000_000_000n
+					return executed
+				}
+			},
+			intervalMs: 1,
+			onSaturationAlert,
+			...options
+		})
+
+		try {
+			monitor.start()
+			for (const [index, lag] of lags.entries()) {
+				currentLag = lag
+				immediates.shift()?.()
+				if (index < lags.length - 1) timers.shift()?.()
+			}
+			monitor.stop()
+		} finally {
+			immediateSpy.mockRestore()
+			timeoutSpy.mockRestore()
+		}
+	}
+
+	it('evaluates event-loop saturation from rolling p95 instead of a single spike', () => {
+		const onSaturationAlert = vi.fn<(alert: SaturationAlert) => void>()
+		runDeterministicLagSamples(
+			[...Array.from({length: 19}, () => 1), 500],
+			onSaturationAlert,
+			{minimumSamples: 20, thresholds: {info: 20, warn: 50, critical: 100}}
+		)
+		expect(onSaturationAlert).not.toHaveBeenCalled()
+
+		runDeterministicLagSamples(
+			[...Array.from({length: 18}, () => 1), 60, 60],
+			onSaturationAlert,
+			{minimumSamples: 20, thresholds: {info: 20, warn: 50, critical: 100}}
+		)
+		expect(onSaturationAlert).toHaveBeenCalledOnce()
+		expect(onSaturationAlert).toHaveBeenCalledWith(expect.objectContaining({
+			reason: 'event_loop_lag',
+			state: 'warn',
+			previousState: 'healthy',
+			aggregation: 'p95',
+			value: 60,
+			sampleCount: 20
+		}))
+	})
+
+	it('emits bounded state transitions, recovery, and reminders', () => {
+		const transitions = vi.fn<(alert: SaturationAlert) => void>()
+		runDeterministicLagSamples(
+			[...Array.from({length: 18}, () => 1), 60, 60, 200, 200, ...Array.from({length: 100}, () => 1)],
+			transitions,
+			{minimumSamples: 20, reminderIntervalMs: 0, thresholds: {info: 20, warn: 50, critical: 100}}
+		)
+		const states = transitions.mock.calls.map(([alert]) => alert.state)
+		expect(states[0]).toBe('warn')
+		expect(states).toContain('critical')
+		expect(states.at(-1)).toBe('healthy')
+		expect(transitions.mock.calls.at(-1)?.[0]).toEqual(expect.objectContaining({
+			severity: 'info',
+			aggregation: 'p95'
+		}))
+
+		const reminders = vi.fn<(alert: SaturationAlert) => void>()
+		runDeterministicLagSamples(
+			Array.from({length: 8}, () => 60),
+			reminders,
+			{minimumSamples: 1, reminderIntervalMs: 5000, thresholds: {info: 20, warn: 50, critical: 100}}
+		)
+		expect(reminders.mock.calls[0]?.[0]).toEqual(expect.objectContaining({state: 'warn'}))
+		expect(reminders.mock.calls[1]?.[0]).toEqual(expect.objectContaining({state: 'warn', reminder: true}))
+		expect(reminders).toHaveBeenCalledTimes(2)
 	})
 })
