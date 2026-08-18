@@ -371,7 +371,7 @@ describe('createEventLoopMonitor', () => {
 		monitor.stop()
 	})
 
-	it('should emit saturation alerts for info threshold', async() => {
+	it('should use the info threshold as a quiet recovery band', async() => {
 
 		vi.useRealTimers()
 
@@ -392,9 +392,7 @@ describe('createEventLoopMonitor', () => {
 		monitor.start()
 		await new Promise((resolve) => setTimeout(resolve, 60))
 
-		expect(onSaturationAlert).toHaveBeenCalled()
-		const alert = onSaturationAlert.mock.calls[0]?.[0]
-		expect(alert?.severity).toBe('info')
+		expect(onSaturationAlert).not.toHaveBeenCalled()
 
 		monitor.stop()
 	})
@@ -686,5 +684,22 @@ describe('createEventLoopMonitor', () => {
 		expect(reminders.mock.calls[0]?.[0]).toEqual(expect.objectContaining({state: 'warn'}))
 		expect(reminders.mock.calls[1]?.[0]).toEqual(expect.objectContaining({state: 'warn', reminder: true}))
 		expect(reminders).toHaveBeenCalledTimes(2)
+	})
+
+	it('does not flap between warning and recovery inside the informational band', () => {
+		const transitions = vi.fn<(alert: SaturationAlert) => void>()
+		runDeterministicLagSamples(
+			[
+				...Array.from({length: 100}, () => 30),
+				...Array.from({length: 6}, () => 60),
+				...Array.from({length: 100}, () => 30),
+				...Array.from({length: 6}, () => 60),
+				...Array.from({length: 100}, () => 1)
+			],
+			transitions,
+			{minimumSamples: 20, reminderIntervalMs: 0, thresholds: {info: 20, warn: 50, critical: 100}}
+		)
+
+		expect(transitions.mock.calls.map(([alert]) => alert.state)).toEqual(['warn', 'healthy'])
 	})
 })
