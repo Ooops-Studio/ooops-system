@@ -98,4 +98,36 @@ describe('events, jobs, and performance bridges', () => {
 		expect(destination.record).toHaveBeenCalledWith('process_cpu_utilization', 0.5)
 		expect(setAttribute).toHaveBeenCalledWith('performance.measurement', expect.objectContaining({name: 'cpu_usage'}))
 	})
+
+	it('logs saturation transitions, bounded reminders, and recovery without informational noise', () => {
+		const destination = output()
+		wirePerformanceObservability({} as never, destination.options as never)
+		emit<PerformanceObservabilityEvent>('performance', {
+			kind: 'saturation_alert',
+			alert: {reason: 'event_loop_lag', severity: 'info', value: 25, threshold: 20, state: 'info', previousState: 'healthy', aggregation: 'p95', sampleCount: 20}
+		})
+		emit<PerformanceObservabilityEvent>('performance', {
+			kind: 'saturation_alert',
+			alert: {reason: 'event_loop_lag', severity: 'warn', value: 60, threshold: 50, state: 'warn', previousState: 'info', aggregation: 'p95', sampleCount: 20}
+		})
+		emit<PerformanceObservabilityEvent>('performance', {
+			kind: 'saturation_alert',
+			alert: {reason: 'event_loop_lag', severity: 'critical', value: 120, threshold: 100, state: 'critical', previousState: 'warn', aggregation: 'p95', sampleCount: 30}
+		})
+		emit<PerformanceObservabilityEvent>('performance', {
+			kind: 'saturation_alert',
+			alert: {reason: 'event_loop_lag', severity: 'critical', value: 130, threshold: 100, state: 'critical', previousState: 'critical', reminder: true, aggregation: 'p95', sampleCount: 100}
+		})
+		emit<PerformanceObservabilityEvent>('performance', {
+			kind: 'saturation_alert',
+			alert: {reason: 'event_loop_lag', severity: 'info', value: 10, threshold: 20, state: 'healthy', previousState: 'critical', aggregation: 'p95', sampleCount: 100}
+		})
+
+		expect(destination.warn).toHaveBeenCalledTimes(3)
+		expect(destination.warn).toHaveBeenNthCalledWith(1, 'Performance saturation state changed', expect.objectContaining({state: 'warn', previous_state: 'info'}))
+		expect(destination.warn).toHaveBeenNthCalledWith(2, 'Performance saturation state changed', expect.objectContaining({state: 'critical', previous_state: 'warn'}))
+		expect(destination.warn).toHaveBeenNthCalledWith(3, 'Performance saturation persists', expect.objectContaining({state: 'critical'}))
+		expect(destination.info).toHaveBeenCalledOnce()
+		expect(destination.info).toHaveBeenCalledWith('Performance saturation recovered', expect.objectContaining({state: 'healthy', previous_state: 'critical'}))
+	})
 })

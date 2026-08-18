@@ -66,7 +66,19 @@ export interface EventLoopMonitorOptions {
 		warn?: number
 		critical?: number
 	}
+
+	/** Samples required before evaluating the rolling percentile. */
+	minimumSamples?: number
+
+	/** Milliseconds between reminders while warning or critical persists. Zero disables reminders. */
+	reminderIntervalMs?: number
 }
+
+type EventLoopSaturationState = 'healthy' | 'info' | 'warn' | 'critical'
+
+const MAX_LAG_SAMPLES = 100
+const DEFAULT_MINIMUM_SAMPLES = 20
+const DEFAULT_REMINDER_INTERVAL_MS = 10 * 60 * 1000
 
 /**
  * Create an event loop lag monitor.
@@ -82,11 +94,19 @@ export function createEventLoopMonitor(options: EventLoopMonitorOptions): EventL
 		intervalMs = 1000,
 		onSaturationAlert,
 		onPerfEvent,
-		thresholds = {}
+		thresholds = {},
+		minimumSamples = DEFAULT_MINIMUM_SAMPLES,
+		reminderIntervalMs = DEFAULT_REMINDER_INTERVAL_MS
 	} = options
 
 	if (!Number.isSafeInteger(intervalMs) || intervalMs <= 0 || intervalMs > 2_147_483_647) {
 		throw new Error('Event loop intervalMs must be between 1 and 2147483647')
+	}
+	if (!Number.isSafeInteger(minimumSamples) || minimumSamples <= 0 || minimumSamples > MAX_LAG_SAMPLES) {
+		throw new Error(`Event loop minimumSamples must be between 1 and ${MAX_LAG_SAMPLES}`)
+	}
+	if (!Number.isSafeInteger(reminderIntervalMs) || reminderIntervalMs < 0 || reminderIntervalMs > 2_147_483_647) {
+		throw new Error('Event loop reminderIntervalMs must be between 0 and 2147483647')
 	}
 	const configuredThresholds = [thresholds.info, thresholds.warn, thresholds.critical]
 		.filter((value): value is number => value !== undefined)
@@ -111,6 +131,8 @@ export function createEventLoopMonitor(options: EventLoopMonitorOptions): EventL
 	let running = false
 	const lagSamples: number[] = []
 	let currentLag: number | null = null
+	let saturationState: EventLoopSaturationState = 'healthy'
+	let lastSaturationNotificationAt: number | null = null
 	const scheduleNext = (): void => {
 		if (!running) return
 		running = false
@@ -153,7 +175,7 @@ export function createEventLoopMonitor(options: EventLoopMonitorOptions): EventL
 
 			// Add to samples (keep only last maxSamples)
 			lagSamples.push(lagMs)
-			if (lagSamples.length > 100) {
+			if (lagSamples.length > MAX_LAG_SAMPLES) {
 				lagSamples.shift()
 			}
 
@@ -173,29 +195,43 @@ export function createEventLoopMonitor(options: EventLoopMonitorOptions): EventL
 				}
 			}
 
-			// Check saturation thresholds
-			if (onSaturationAlert) {
-				let severity: 'info' | 'warn' | 'critical' | null = null
-				let threshold = 0
+			// Evaluate saturation from the rolling p95 instead of reacting to a
+			// single delayed tick. Emit only transitions plus a bounded reminder.
+			if (onSaturationAlert && lagSamples.length >= minimumSamples) {
+				const sorted = [...lagSamples].sort((a, b) => a - b)
+				const p95 = calculatePercentiles(sorted, 95)
+				const nextState: EventLoopSaturationState = p95 >= criticalThreshold
+					? 'critical'
+					: p95 >= warnThreshold
+						? 'warn'
+						: p95 >= infoThreshold ? 'info' : 'healthy'
+				let observedAt: number | null = null
+				try { observedAt = clock.now() } catch { /* reminders are optional when the wall clock fails */ }
+				const stateChanged = nextState !== saturationState
+				const active = nextState === 'warn' || nextState === 'critical'
+				const reminderDue = active && reminderIntervalMs > 0 && observedAt !== null &&
+					lastSaturationNotificationAt !== null &&
+					observedAt - lastSaturationNotificationAt >= reminderIntervalMs
 
-				if (lagMs >= criticalThreshold) {
-					severity = 'critical'
-					threshold = criticalThreshold
-				} else if (lagMs >= warnThreshold) {
-					severity = 'warn'
-					threshold = warnThreshold
-				} else if (lagMs >= infoThreshold) {
-					severity = 'info'
-					threshold = infoThreshold
-				}
-
-				if (severity) {
+				if (stateChanged || reminderDue) {
+					const previousState = saturationState
+					saturationState = nextState
+					if (observedAt !== null) lastSaturationNotificationAt = observedAt
+					const severity = nextState === 'healthy' ? 'info' : nextState
+					const threshold = nextState === 'critical'
+						? criticalThreshold
+						: nextState === 'warn' ? warnThreshold : infoThreshold
 					try {
 						onSaturationAlert({
 							reason: 'event_loop_lag',
 							severity,
-							value: lagMs,
-							threshold
+							value: p95,
+							threshold,
+							state: nextState,
+							previousState,
+							...(reminderDue ? {reminder: true} : {}),
+							aggregation: 'p95',
+							sampleCount: lagSamples.length
 						})
 					} catch {
 						// Callback failures must not stop monitoring.

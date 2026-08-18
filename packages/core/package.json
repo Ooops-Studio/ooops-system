@@ -1,7 +1,7 @@
 {
   "name": "@ooopsstudio/core",
   "description": "Foundation contracts, ports, tokens, and runtime utilities for Ooops System packages.",
-	"version": "0.9.0",
+  "version": "0.9.1",
   "type": "module",
   "publishConfig": {
     "access": "public"

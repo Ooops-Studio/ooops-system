@@ -1,6 +1,6 @@
 {
 	"name": "@ooopsstudio/bridges",
-	"version": "0.9.0",
+	"version": "0.9.1",
 	"description": "Explicit, bounded cross-domain bridges for Ooops System packages.",
 	"type": "module",
 	"publishConfig": {"access": "public"},
