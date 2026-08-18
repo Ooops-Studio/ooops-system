@@ -74,7 +74,7 @@ export interface EventLoopMonitorOptions {
 	reminderIntervalMs?: number
 }
 
-type EventLoopSaturationState = 'healthy' | 'info' | 'warn' | 'critical'
+type EventLoopSaturationState = 'healthy' | 'warn' | 'critical'
 
 const MAX_LAG_SAMPLES = 100
 const DEFAULT_MINIMUM_SAMPLES = 20
@@ -200,11 +200,16 @@ export function createEventLoopMonitor(options: EventLoopMonitorOptions): EventL
 			if (onSaturationAlert && lagSamples.length >= minimumSamples) {
 				const sorted = [...lagSamples].sort((a, b) => a - b)
 				const p95 = calculatePercentiles(sorted, 95)
+				// Treat the informational band as recovery hysteresis. Once the
+				// runtime has entered warning or critical, it must fall below the
+				// info threshold before it is considered healthy again. This avoids
+				// warning/recovery log flapping while p95 hovers around the warning
+				// boundary without losing the per-sample lag metric.
 				const nextState: EventLoopSaturationState = p95 >= criticalThreshold
 					? 'critical'
 					: p95 >= warnThreshold
 						? 'warn'
-						: p95 >= infoThreshold ? 'info' : 'healthy'
+						: p95 < infoThreshold ? 'healthy' : saturationState
 				let observedAt: number | null = null
 				try { observedAt = clock.now() } catch { /* reminders are optional when the wall clock fails */ }
 				const stateChanged = nextState !== saturationState
