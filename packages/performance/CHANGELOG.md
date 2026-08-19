@@ -1,5 +1,11 @@
 # @ooopsstudio/performance
 
+## 0.9.6
+
+### Patch Changes
+
+- Republish the critical-incident latching fix through pnpm so workspace dependency protocols are converted to consumer-safe registry ranges.
+
 ## 0.9.5
 
 ### Patch Changes
