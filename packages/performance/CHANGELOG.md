@@ -1,5 +1,15 @@
 # @ooopsstudio/performance
 
+## 0.9.4
+
+### Patch Changes
+
+- Publish the stabilized event-loop saturation monitor with consumer-safe workspace dependency ranges.
+
+### Updated dependencies
+
+- @ooopsstudio/core@0.9.1
+
 ## 0.9.3
 
 ### Patch Changes
