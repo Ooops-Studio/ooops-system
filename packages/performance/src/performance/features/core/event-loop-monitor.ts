@@ -210,11 +210,18 @@ export function createEventLoopMonitor(options: EventLoopMonitorOptions): EventL
 				// info threshold before it is considered healthy again. This avoids
 				// warning/recovery log flapping while p95 hovers around the warning
 				// boundary without losing the per-sample lag metric.
-				const observedState: EventLoopSaturationState = p95 >= criticalThreshold
+				const measuredState: EventLoopSaturationState = p95 >= criticalThreshold
 					? 'critical'
 					: p95 >= warnThreshold
 						? 'warn'
 						: p95 < infoThreshold ? 'healthy' : saturationState
+				// Keep an active incident at its highest observed severity until the
+				// recovery band is stable. A critical incident must not oscillate back
+				// to warning whenever rolling p95 crosses the critical boundary; that
+				// downgrade is not actionable and previously flooded downstream logs.
+				const observedState: EventLoopSaturationState = saturationState === 'critical' && measuredState === 'warn'
+					? 'critical'
+					: measuredState
 				if (observedState === saturationState) {
 					pendingSaturationState = null
 					pendingSaturationSamples = 0

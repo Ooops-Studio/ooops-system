@@ -1,6 +1,6 @@
 {
 	"name": "@ooopsstudio/performance",
-	"version": "0.9.4",
+	"version": "0.9.5",
 	"description": "Bounded server performance measurement, budgets, runtime monitoring, and event delivery for Ooops System applications.",
 	"type": "module",
 	"publishConfig": {"access": "public"},

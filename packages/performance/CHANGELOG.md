@@ -1,5 +1,11 @@
 # @ooopsstudio/performance
 
+## 0.9.5
+
+### Patch Changes
+
+- Keep a critical event-loop saturation incident latched until stable recovery so rolling-p95 boundary crossings cannot flood downstream logs with critical-to-warning transitions.
+
 ## 0.9.4
 
 ### Patch Changes

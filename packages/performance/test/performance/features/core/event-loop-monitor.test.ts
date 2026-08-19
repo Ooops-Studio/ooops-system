@@ -712,6 +712,23 @@ describe('createEventLoopMonitor', () => {
 		expect(transitions.mock.calls.map(([alert]) => alert.state)).toEqual(['warn', 'healthy'])
 	})
 
+	it('keeps a critical incident latched until stable recovery', () => {
+		const transitions = vi.fn<(alert: SaturationAlert) => void>()
+		runDeterministicLagSamples(
+			[
+				...Array.from({length: 100}, () => 1),
+				...Array.from({length: 12}, () => 200),
+				...Array.from({length: 5}, () => [60, 200]).flat(),
+				...Array.from({length: 100}, () => 60),
+				...Array.from({length: 130}, () => 1)
+			],
+			transitions,
+			{minimumSamples: 20, reminderIntervalMs: 0, thresholds: {info: 20, warn: 50, critical: 100}}
+		)
+
+		expect(transitions.mock.calls.map(([alert]) => alert.state)).toEqual(['critical', 'healthy'])
+	})
+
 	it('requires stable p95 observations before logging entry or recovery', () => {
 		const transitions = vi.fn<(alert: SaturationAlert) => void>()
 		runDeterministicLagSamples(
