@@ -72,6 +72,7 @@ export interface EventLoopMonitorOptions {
 
 	/** Milliseconds between reminders while warning or critical persists. Zero disables reminders. */
 	reminderIntervalMs?: number
+
 }
 
 type EventLoopSaturationState = 'healthy' | 'warn' | 'critical'
@@ -79,6 +80,8 @@ type EventLoopSaturationState = 'healthy' | 'warn' | 'critical'
 const MAX_LAG_SAMPLES = 100
 const DEFAULT_MINIMUM_SAMPLES = 20
 const DEFAULT_REMINDER_INTERVAL_MS = 10 * 60 * 1000
+const DEFAULT_TRANSITION_CONFIRMATION_SAMPLES = 5
+const DEFAULT_RECOVERY_CONFIRMATION_SAMPLES = 30
 
 /**
  * Create an event loop lag monitor.
@@ -132,6 +135,8 @@ export function createEventLoopMonitor(options: EventLoopMonitorOptions): EventL
 	const lagSamples: number[] = []
 	let currentLag: number | null = null
 	let saturationState: EventLoopSaturationState = 'healthy'
+	let pendingSaturationState: EventLoopSaturationState | null = null
+	let pendingSaturationSamples = 0
 	let lastSaturationNotificationAt: number | null = null
 	const scheduleNext = (): void => {
 		if (!running) return
@@ -205,11 +210,26 @@ export function createEventLoopMonitor(options: EventLoopMonitorOptions): EventL
 				// info threshold before it is considered healthy again. This avoids
 				// warning/recovery log flapping while p95 hovers around the warning
 				// boundary without losing the per-sample lag metric.
-				const nextState: EventLoopSaturationState = p95 >= criticalThreshold
+				const observedState: EventLoopSaturationState = p95 >= criticalThreshold
 					? 'critical'
 					: p95 >= warnThreshold
 						? 'warn'
 						: p95 < infoThreshold ? 'healthy' : saturationState
+				if (observedState === saturationState) {
+					pendingSaturationState = null
+					pendingSaturationSamples = 0
+				} else if (pendingSaturationState === observedState) {
+					pendingSaturationSamples += 1
+				} else {
+					pendingSaturationState = observedState
+					pendingSaturationSamples = 1
+				}
+				const confirmationSamples = observedState === 'healthy'
+					? DEFAULT_RECOVERY_CONFIRMATION_SAMPLES
+					: DEFAULT_TRANSITION_CONFIRMATION_SAMPLES
+				const nextState = observedState !== saturationState && pendingSaturationSamples >= confirmationSamples
+					? observedState
+					: saturationState
 				let observedAt: number | null = null
 				try { observedAt = clock.now() } catch { /* reminders are optional when the wall clock fails */ }
 				const stateChanged = nextState !== saturationState
@@ -221,6 +241,10 @@ export function createEventLoopMonitor(options: EventLoopMonitorOptions): EventL
 				if (stateChanged || reminderDue) {
 					const previousState = saturationState
 					saturationState = nextState
+					if (stateChanged) {
+						pendingSaturationState = null
+						pendingSaturationSamples = 0
+					}
 					if (observedAt !== null) lastSaturationNotificationAt = observedAt
 					const severity = nextState === 'healthy' ? 'info' : nextState
 					const threshold = nextState === 'critical'

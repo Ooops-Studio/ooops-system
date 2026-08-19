@@ -1,5 +1,11 @@
 # @ooopsstudio/performance
 
+## 0.9.3
+
+### Patch Changes
+
+- Require consecutive rolling-p95 observations before event-loop saturation entry, escalation, and recovery so short-lived threshold oscillations do not generate repeated operational logs.
+
 ## 0.9.2
 
 ### Patch Changes

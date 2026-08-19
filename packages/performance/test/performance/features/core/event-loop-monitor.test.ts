@@ -333,7 +333,7 @@ describe('createEventLoopMonitor', () => {
 		})
 
 		monitor.start()
-		await new Promise((resolve) => setTimeout(resolve, 60))
+		await new Promise((resolve) => setTimeout(resolve, 280))
 
 		expect(onSaturationAlert).toHaveBeenCalled()
 		const alert = onSaturationAlert.mock.calls[0]?.[0]
@@ -362,7 +362,7 @@ describe('createEventLoopMonitor', () => {
 		})
 
 		monitor.start()
-		await new Promise((resolve) => setTimeout(resolve, 60))
+		await new Promise((resolve) => setTimeout(resolve, 280))
 
 		expect(onSaturationAlert).toHaveBeenCalled()
 		const alert = onSaturationAlert.mock.calls[0]?.[0]
@@ -644,7 +644,7 @@ describe('createEventLoopMonitor', () => {
 		expect(onSaturationAlert).not.toHaveBeenCalled()
 
 		runDeterministicLagSamples(
-			[...Array.from({length: 18}, () => 1), 60, 60],
+			[...Array.from({length: 18}, () => 1), ...Array.from({length: 6}, () => 60)],
 			onSaturationAlert,
 			{minimumSamples: 20, thresholds: {info: 20, warn: 50, critical: 100}}
 		)
@@ -655,16 +655,25 @@ describe('createEventLoopMonitor', () => {
 			previousState: 'healthy',
 			aggregation: 'p95',
 			value: 60,
-			sampleCount: 20
+			sampleCount: 24
 		}))
 	})
 
 	it('emits bounded state transitions, recovery, and reminders', () => {
 		const transitions = vi.fn<(alert: SaturationAlert) => void>()
 		runDeterministicLagSamples(
-			[...Array.from({length: 18}, () => 1), 60, 60, 200, 200, ...Array.from({length: 100}, () => 1)],
+			[
+				...Array.from({length: 18}, () => 1),
+				...Array.from({length: 10}, () => 60),
+				...Array.from({length: 10}, () => 200),
+				...Array.from({length: 150}, () => 1)
+			],
 			transitions,
-			{minimumSamples: 20, reminderIntervalMs: 0, thresholds: {info: 20, warn: 50, critical: 100}}
+			{
+				minimumSamples: 20,
+				reminderIntervalMs: 0,
+				thresholds: {info: 20, warn: 50, critical: 100}
+			}
 		)
 		const states = transitions.mock.calls.map(([alert]) => alert.state)
 		expect(states[0]).toBe('warn')
@@ -677,7 +686,7 @@ describe('createEventLoopMonitor', () => {
 
 		const reminders = vi.fn<(alert: SaturationAlert) => void>()
 		runDeterministicLagSamples(
-			Array.from({length: 8}, () => 60),
+			Array.from({length: 12}, () => 60),
 			reminders,
 			{minimumSamples: 1, reminderIntervalMs: 5000, thresholds: {info: 20, warn: 50, critical: 100}}
 		)
@@ -694,10 +703,31 @@ describe('createEventLoopMonitor', () => {
 				...Array.from({length: 6}, () => 60),
 				...Array.from({length: 100}, () => 30),
 				...Array.from({length: 6}, () => 60),
-				...Array.from({length: 100}, () => 1)
+				...Array.from({length: 130}, () => 1)
 			],
 			transitions,
 			{minimumSamples: 20, reminderIntervalMs: 0, thresholds: {info: 20, warn: 50, critical: 100}}
+		)
+
+		expect(transitions.mock.calls.map(([alert]) => alert.state)).toEqual(['warn', 'healthy'])
+	})
+
+	it('requires stable p95 observations before logging entry or recovery', () => {
+		const transitions = vi.fn<(alert: SaturationAlert) => void>()
+		runDeterministicLagSamples(
+			[
+				...Array.from({length: 5}, () => [1, 60]).flat(),
+				...Array.from({length: 90}, () => 1),
+				...Array.from({length: 5}, () => [60, 1]).flat(),
+				...Array.from({length: 10}, () => 60),
+				...Array.from({length: 130}, () => 1)
+			],
+			transitions,
+			{
+				minimumSamples: 20,
+				reminderIntervalMs: 0,
+				thresholds: {info: 20, warn: 50, critical: 100}
+			}
 		)
 
 		expect(transitions.mock.calls.map(([alert]) => alert.state)).toEqual(['warn', 'healthy'])
