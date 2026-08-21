@@ -14,7 +14,7 @@ export type JobsTelemetryEvent =
 	| {readonly kind: 'retry'}
 	| {readonly kind: 'active'; readonly count: number}
 	| {readonly kind: 'rejected'; readonly reason: 'capacity' | 'draining' | 'closed' | 'invalid'}
-	| {readonly kind: 'operation_failed'; readonly operation: 'backend' | 'execution' | 'lease' | 'maintenance' | 'tracing'; readonly code: string; readonly error?: unknown; readonly reportable: boolean}
+	| {readonly kind: 'operation_failed'; readonly operation: 'backend' | 'execution' | 'lease' | 'maintenance' | 'tracing' | 'schedule-trigger' | 'stale-recovery' | 'run-claim'; readonly code: string; readonly error?: unknown; readonly reportable: boolean}
 	| {readonly kind: 'finalization_failed'; readonly operation: 'flush' | 'shutdown' | 'lifecycle'; readonly code: string; readonly error?: unknown}
 	| {readonly kind: 'log'; readonly level: 'debug' | 'info' | 'warn' | 'error'; readonly message: string; readonly attributes?: Readonly<Record<string, unknown>>}
 	| {readonly kind: 'recovered'}

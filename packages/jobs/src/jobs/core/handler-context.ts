@@ -188,10 +188,12 @@ export function createJobsKernelContext(options: JobsHandlerOptions): JobsKernel
 			else if (name === 'jobs_runs_dead_lettered_total') telemetry.emit({kind: 'execution', result: 'dead_lettered'})
 		},
 		report(error, operation) {
-			const mapped = operation === 'task-run' ? 'execution'
-				: operation.includes('lease') ? 'lease'
-					: operation === 'maintenance' ? 'maintenance'
-						: operation === 'tracing' ? 'tracing' : 'backend'
+			const mapped = operation === 'schedule-trigger' || operation === 'stale-recovery' || operation === 'run-claim'
+				? operation
+				: operation === 'task-run' ? 'execution'
+					: operation.includes('lease') ? 'lease'
+						: operation === 'maintenance' ? 'maintenance'
+							: operation === 'tracing' ? 'tracing' : 'backend'
 			telemetry.emit({
 				kind: 'operation_failed', operation: mapped,
 				code: operation === 'task-run' ? projectJobFailure(error) : `JOBS_${operation.replace(/[^a-z0-9]+/giu, '_').toUpperCase()}_FAILED`,

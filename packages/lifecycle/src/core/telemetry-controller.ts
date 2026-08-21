@@ -106,7 +106,6 @@ export class LifecycleTelemetryController {
 			`lifecycle.startup_${result}`, {result, durationMs}
 		))
 		this.trace(`lifecycle.startup.${result}`, {'lifecycle.duration_ms': durationMs}, result === 'failure')
-		if (result === 'failure') this.report('Lifecycle startup failed', 'LIFECYCLE_STARTUP_FAILURE')
 	}
 
 	shutdown(result: 'success' | 'failure' | 'timeout', durationMs: number): void {
@@ -118,15 +117,26 @@ export class LifecycleTelemetryController {
 			`lifecycle.shutdown_${result}`, {result, durationMs}
 		))
 		this.trace(`lifecycle.shutdown.${result}`, {'lifecycle.duration_ms': durationMs}, result !== 'success')
-		if (result !== 'success') this.report('Lifecycle shutdown failed', result === 'timeout'
-			? 'LIFECYCLE_SHUTDOWN_TIMEOUT'
-			: 'LIFECYCLE_SHUTDOWN_FAILURE')
 	}
 
-	hookFailure(stage: LifecycleStartupStage | 'shutdown' | 'flush'): void {
+	hookFailure(
+		stage: LifecycleStartupStage | 'shutdown' | 'flush',
+		error: unknown,
+		context: Record<string, string> = {}
+	): void {
 		if (this.selfMetrics) safe(() => this.metrics?.increment?.('_lifecycle_hook_failures_total', {stage}))
-		safe(() => this.logger?.warn('lifecycle.hook_failure', {stage, code: 'LIFECYCLE_HOOK_FAILURE'}))
-		this.report('Lifecycle hook failed', 'LIFECYCLE_HOOK_FAILURE', {stage})
+		safe(() => this.logger?.warn('lifecycle.hook_failure', {
+			stage, code: 'LIFECYCLE_HOOK_FAILURE', ...context
+		}))
+		this.report(error, 'LIFECYCLE_HOOK_FAILURE', {stage, ...context})
+	}
+
+	failure(
+		error: unknown,
+		code: 'LIFECYCLE_STARTUP_FAILURE' | 'LIFECYCLE_SHUTDOWN_FAILURE' | 'LIFECYCLE_SHUTDOWN_TIMEOUT',
+		context: Record<string, string> = {}
+	): void {
+		this.report(error, code, context)
 	}
 
 	healthFailure(criticality: 'required' | 'optional'): void {
@@ -140,9 +150,9 @@ export class LifecycleTelemetryController {
 		safe(() => this.logger?.warn('lifecycle.degraded', {severity}))
 	}
 
-	private report(message: string, code: string, context: Record<string, string> = {}): void {
-		const error = normalizeError(Object.assign(new Error(message), {name: code}))
-		safe(() => this.errors?.report(error, {
+	private report(error: unknown, code: string, context: Record<string, string> = {}): void {
+		const normalized = normalizeError(error)
+		safe(() => this.errors?.report(normalized, {
 			source: 'lifecycle', code, ...context
 		}))
 	}

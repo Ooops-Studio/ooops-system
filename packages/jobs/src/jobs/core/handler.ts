@@ -9,6 +9,7 @@ import {createJobsKernelContext} from './handler-context'
 import {createJobsExecution} from './handler-execution'
 import {hasJobsNumberPrecision, validateJobsNamespace} from './handler-helpers'
 import {createJobsQueueApi} from './handler-queue-api'
+import {runInitialJobsTickWithRetry} from './handler-startup'
 import {createJobsTick} from './handler-tick'
 import {withJobsTimeout} from './timeout'
 
@@ -144,8 +145,13 @@ export function createJobsRuntime(
 			if (context.control.start) return context.control.start
 			if (context.control.started) return
 			context.control.registrationClosed = true
-			context.control.started = true; tick.startLoop()
-			const pending = tick.tick().catch((error) => {
+			context.control.started = true
+			const pending = runInitialJobsTickWithRetry(
+				tick.tick,
+				({attempt, nextAttempt, delayMs}) => context.log('warn', 'jobs.startup_tick_retry', {
+					attempt, nextAttempt, delayMs
+				})
+			).then(() => { tick.startLoop() }).catch((error) => {
 				tick.stopLoop(); context.control.started = false; throw error
 			}).finally(() => { if (context.control.start === pending) context.control.start = undefined })
 			context.control.start = pending

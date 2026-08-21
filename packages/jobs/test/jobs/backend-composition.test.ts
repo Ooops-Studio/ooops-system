@@ -1,12 +1,82 @@
 import {createFixedClock} from '@ooopsstudio/core/runtime/time/fixed-clock'
-import {describe, expect, it} from 'vitest'
+import {describe, expect, it, vi} from 'vitest'
 
 import {guardJobsBackendInputs} from '../../src/jobs/features/backends/backend-input-guard'
 import {createMemoryJobsBackend} from '../../src/jobs/features/backends/memory'
 import {createCustomJobs} from '../../src/jobs/public/custom'
+import {attachJobsObservability, type JobsObservabilityEvent} from '../../src/jobs/public/observability'
 import type {StoredJobRun} from '../../src/jobs/types/backend'
 
 describe('Jobs backend composition', () => {
+	it('retries a transient initial tick within a fixed bound before starting the polling loop', async() => {
+		vi.useFakeTimers()
+		try {
+			const memory = createMemoryJobsBackend()
+			let recoveryCalls = 0
+			const backend = {
+				...memory,
+				runs: {
+					...memory.runs,
+					async recoverStaleLeases(...arguments_: Parameters<typeof memory.runs.recoverStaleLeases>) {
+						recoveryCalls += 1
+						if (recoveryCalls < 3) {
+							throw Object.assign(new Error('connection terminated unexpectedly'), {code: '57P01'})
+						}
+						return memory.runs.recoverStaleLeases(...arguments_)
+					}
+				}
+			}
+			const runtime = await createCustomJobs({clock: createFixedClock(0), backend, pollIntervalMs: 1_000})
+			const events: JobsObservabilityEvent[] = []
+			attachJobsObservability(runtime.jobs, (event) => { events.push(event) })
+
+			const starting = runtime.jobs.start()
+			await vi.advanceTimersByTimeAsync(100)
+			await vi.advanceTimersByTimeAsync(250)
+			await expect(starting).resolves.toBeUndefined()
+
+			expect(recoveryCalls).toBe(3)
+			expect(events.filter((event) => event.kind === 'operation_failed')).toEqual([
+				expect.objectContaining({operation: 'stale-recovery', code: 'JOBS_STALE_RECOVERY_FAILED'}),
+				expect.objectContaining({operation: 'stale-recovery', code: 'JOBS_STALE_RECOVERY_FAILED'})
+			])
+			expect(events.filter((event) => event.kind === 'log')).toEqual([
+				expect.objectContaining({message: 'jobs.startup_tick_retry', attributes: {attempt: 1, nextAttempt: 2, delayMs: 100}}),
+				expect.objectContaining({message: 'jobs.startup_tick_retry', attributes: {attempt: 2, nextAttempt: 3, delayMs: 250}})
+			])
+			await runtime.jobs.shutdown()
+		} finally {
+			vi.useRealTimers()
+		}
+	})
+
+	it('reports schedule, stale-recovery, and claim failures separately without retrying permanent errors', async() => {
+		const memory = createMemoryJobsBackend()
+		const schedule = vi.fn(async() => { throw new Error('invalid schedule state') })
+		const recover = vi.fn(async() => { throw new Error('invalid lease state') })
+		const claim = vi.fn(async() => { throw new Error('invalid claim state') })
+		const backend = {
+			...memory,
+			schedules: {...memory.schedules, triggerDueSchedules: schedule},
+			runs: {...memory.runs, recoverStaleLeases: recover, claimDueRuns: claim}
+		}
+		const runtime = await createCustomJobs({clock: createFixedClock(0), backend})
+		const events: JobsObservabilityEvent[] = []
+		attachJobsObservability(runtime.jobs, (event) => { events.push(event) })
+
+		await expect(runtime.jobs.start()).rejects.toThrow('Jobs scheduler tick stages failed')
+
+		expect(schedule).toHaveBeenCalledOnce()
+		expect(recover).toHaveBeenCalledOnce()
+		expect(claim).toHaveBeenCalledOnce()
+		expect(events.filter((event) => event.kind === 'operation_failed')).toEqual([
+			expect.objectContaining({operation: 'schedule-trigger', code: 'JOBS_SCHEDULE_TRIGGER_FAILED'}),
+			expect.objectContaining({operation: 'stale-recovery', code: 'JOBS_STALE_RECOVERY_FAILED'}),
+			expect.objectContaining({operation: 'run-claim', code: 'JOBS_RUN_CLAIM_FAILED'})
+		])
+		await runtime.jobs.shutdown()
+	})
+
 	it('fences unsupported schedule policies before a custom backend can commit a run', async() => {
 		const memory = createMemoryJobsBackend()
 		await memory.schedules.saveSchedule({

@@ -1,6 +1,6 @@
 {
 	"name": "@ooopsstudio/lifecycle",
-	"version": "0.9.0",
+	"version": "0.9.1",
 	"description": "Staged startup, health probes, graceful draining, and retryable shutdown for Ooops System applications.",
 	"type": "module",
 	"publishConfig": {"access": "public"},

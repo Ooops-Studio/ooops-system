@@ -149,6 +149,16 @@ export function createLifecycleHandler(options: ResolvedLifecycleOptions): Manag
 			health: currentHealth()
 		})
 	)
+	type HookExecutionResult = {success: true} | {success: false; error: unknown}
+	const reportedFailures = new WeakSet<object>()
+	const reportedFailure = (message: string, failures: readonly unknown[]): Error => {
+		const cause = failures.length === 1 ? failures[0] : new AggregateError(failures, message)
+		const error = new Error(message, {cause})
+		reportedFailures.add(error)
+		return error
+	}
+	const wasReported = (error: unknown): boolean => Boolean(error && typeof error === 'object'
+		&& reportedFailures.has(error))
 
 	const assertRegistrationOpen = (): void => {
 		if (registrationsClosed || state !== 'idle' || startPromise) {
@@ -170,7 +180,7 @@ export function createLifecycleHandler(options: ResolvedLifecycleOptions): Manag
 		entry: StartupHookEntry,
 		stage: LifecycleStartupStage,
 		parentSignal: AbortSignal
-	): Promise<boolean> => {
+	): Promise<HookExecutionResult> => {
 		const controller = new AbortController()
 		const abort = (): void => controller.abort(parentSignal.reason)
 		parentSignal.addEventListener('abort', abort, {once: true})
@@ -180,8 +190,8 @@ export function createLifecycleHandler(options: ResolvedLifecycleOptions): Manag
 			signal: controller.signal
 		})
 		let physical: Promise<void>
-		try { physical = trackPhysical(Promise.resolve(Reflect.apply(entry.hook, undefined, [context]))) } catch {
-			physical = trackPhysical(Promise.reject(new Error('LIFECYCLE_HOOK_FAILURE')))
+		try { physical = trackPhysical(Promise.resolve(Reflect.apply(entry.hook, undefined, [context]))) } catch(error) {
+			physical = trackPhysical(Promise.reject(error))
 		}
 		try {
 			await raceBounded(
@@ -191,10 +201,12 @@ export function createLifecycleHandler(options: ResolvedLifecycleOptions): Manag
 				parentSignal,
 				() => controller.abort(new Error('LIFECYCLE_STARTUP_HOOK_TIMEOUT'))
 			)
-			return true
-		} catch {
-			telemetry.hookFailure(stage)
-			return false
+			return {success: true}
+		} catch(error) {
+			telemetry.hookFailure(stage, error, {
+				hookName: entry.name
+			})
+			return {success: false, error}
 		} finally {
 			parentSignal.removeEventListener('abort', abort)
 		}
@@ -223,12 +235,14 @@ export function createLifecycleHandler(options: ResolvedLifecycleOptions): Manag
 				if (controller.signal.aborted) break
 				const results = await Promise.all(batch.map(async(entry) => ({
 					entry,
-					success: await executeStartupEntry(entry, stage, controller.signal)
+					outcome: await executeStartupEntry(entry, stage, controller.signal)
 				})))
 				for (const result of results) {
 					completed.add(result.entry.id)
-					if (result.success) continue
-					if (result.entry.required) throw new Error('LIFECYCLE_REQUIRED_STARTUP_HOOK_FAILURE')
+					if (result.outcome.success) continue
+					if (result.entry.required) throw reportedFailure(
+						'LIFECYCLE_REQUIRED_STARTUP_HOOK_FAILURE', [result.outcome.error]
+					)
 					degrade(result.entry)
 				}
 			}
@@ -236,7 +250,9 @@ export function createLifecycleHandler(options: ResolvedLifecycleOptions): Manag
 			if (controller.signal.aborted) {
 				for (const entry of entries) {
 					if (completed.has(entry.id)) continue
-					if (entry.required) throw new Error('LIFECYCLE_STARTUP_STAGE_TIMEOUT')
+					if (entry.required) throw reportedFailure(
+						'LIFECYCLE_STARTUP_STAGE_TIMEOUT', [new Error('LIFECYCLE_STARTUP_STAGE_TIMEOUT')]
+					)
 					degrade(entry)
 				}
 			}
@@ -278,16 +294,16 @@ export function createLifecycleHandler(options: ResolvedLifecycleOptions): Manag
 		entry: ShutdownHookEntry,
 		context: LifecycleShutdownContext,
 		attemptSignal: AbortSignal
-	): Promise<boolean> => {
-		if (entry.done) return true
+	): Promise<HookExecutionResult> => {
+		if (entry.done) return {success: true}
 		const controller = new AbortController()
 		const abort = (): void => controller.abort(attemptSignal.reason)
 		attemptSignal.addEventListener('abort', abort, {once: true})
 		let physical = entry.physical
 		if (!physical) {
 			const hookContext = Object.freeze({...context, abortSignal: controller.signal})
-			try { physical = trackPhysical(Promise.resolve(Reflect.apply(entry.hook, undefined, [hookContext]))) } catch {
-				physical = trackPhysical(Promise.reject(new Error('LIFECYCLE_HOOK_FAILURE')))
+			try { physical = trackPhysical(Promise.resolve(Reflect.apply(entry.hook, undefined, [hookContext]))) } catch(error) {
+				physical = trackPhysical(Promise.reject(error))
 			}
 			entry.physical = physical
 			void physical.then(() => { entry.done = true }).finally(() => {
@@ -303,10 +319,15 @@ export function createLifecycleHandler(options: ResolvedLifecycleOptions): Manag
 				() => controller.abort(new Error('LIFECYCLE_SHUTDOWN_HOOK_TIMEOUT'))
 			)
 			entry.done = true
-			return true
-		} catch {
-			telemetry.hookFailure('shutdown')
-			return false
+			return {success: true}
+		} catch(error) {
+			telemetry.hookFailure('shutdown', error, {
+				hookName: entry.name,
+				hookGroup: entry.group,
+				hookPriority: String(entry.priority),
+				shutdownReason: context.reason
+			})
+			return {success: false, error}
 		} finally {
 			attemptSignal.removeEventListener('abort', abort)
 		}
@@ -316,16 +337,16 @@ export function createLifecycleHandler(options: ResolvedLifecycleOptions): Manag
 		entry: FlushHookEntry,
 		terminal: boolean,
 		attemptSignal?: AbortSignal
-	): Promise<boolean> => {
-		if (terminal && entry.terminalDone) return true
+	): Promise<HookExecutionResult> => {
+		if (terminal && entry.terminalDone) return {success: true}
 		const controller = new AbortController()
 		const abort = (): void => controller.abort(attemptSignal?.reason)
 		attemptSignal?.addEventListener('abort', abort, {once: true})
 		let physical = entry.physical
 		if (!physical) {
 			const context: LifecycleFlushContext = Object.freeze({signal: controller.signal})
-			try { physical = trackPhysical(Promise.resolve(Reflect.apply(entry.hook, undefined, [context]))) } catch {
-				physical = trackPhysical(Promise.reject(new Error('LIFECYCLE_HOOK_FAILURE')))
+			try { physical = trackPhysical(Promise.resolve(Reflect.apply(entry.hook, undefined, [context]))) } catch(error) {
+				physical = trackPhysical(Promise.reject(error))
 			}
 			entry.physical = physical
 			void physical.then(() => {
@@ -343,10 +364,13 @@ export function createLifecycleHandler(options: ResolvedLifecycleOptions): Manag
 				() => controller.abort(new Error('LIFECYCLE_FLUSH_HOOK_TIMEOUT'))
 			)
 			if (terminal) entry.terminalDone = true
-			return true
-		} catch {
-			telemetry.hookFailure('flush')
-			return false
+			return {success: true}
+		} catch(error) {
+			telemetry.hookFailure('flush', error, {
+				hookName: entry.name,
+				terminal: String(terminal)
+			})
+			return {success: false, error}
 		} finally {
 			attemptSignal?.removeEventListener('abort', abort)
 		}
@@ -356,7 +380,8 @@ export function createLifecycleHandler(options: ResolvedLifecycleOptions): Manag
 		const results = await Promise.all(hooks.flushEntries(terminal).map(
 			async(entry) => await executeFlushEntry(entry, terminal, signal)
 		))
-		if (results.some((success) => !success)) throw new Error('LIFECYCLE_FLUSH_FAILURE')
+		const failures = results.flatMap((result) => result.success ? [] : [result.error])
+		if (failures.length > 0) throw reportedFailure('LIFECYCLE_FLUSH_FAILURE', failures)
 	}
 
 	const flush = async(): Promise<void> => {
@@ -403,7 +428,8 @@ export function createLifecycleHandler(options: ResolvedLifecycleOptions): Manag
 			const results = await Promise.all(tier.entries.map(
 				async(entry) => await executeShutdownEntry(entry, context, signal)
 			))
-			if (results.some((success) => !success)) throw new Error('LIFECYCLE_SHUTDOWN_HOOK_FAILURE')
+			const failures = results.flatMap((result) => result.success ? [] : [result.error])
+			if (failures.length > 0) throw reportedFailure('LIFECYCLE_SHUTDOWN_HOOK_FAILURE', failures)
 		}
 		throwIfAborted(signal)
 		await runFlush(true, signal)
@@ -439,6 +465,11 @@ export function createLifecycleHandler(options: ResolvedLifecycleOptions): Manag
 			const timeoutFailure = stableErrorMessage(error) === 'LIFECYCLE_SHUTDOWN_TIMEOUT'
 			lastFailureCode = timeoutFailure ? 'LIFECYCLE_SHUTDOWN_TIMEOUT' : 'LIFECYCLE_SHUTDOWN_FAILURE'
 			telemetry.shutdown(timeoutFailure ? 'timeout' : 'failure', Math.max(0, options.monotonicClock.now() - startedAt))
+			if (!wasReported(error)) telemetry.failure(
+				error,
+				timeoutFailure ? 'LIFECYCLE_SHUTDOWN_TIMEOUT' : 'LIFECYCLE_SHUTDOWN_FAILURE',
+				{shutdownReason: reason}
+			)
 			if (timeoutFailure) throw new LifecycleShutdownTimeoutError('Lifecycle shutdown timed out', {
 				cause: error, state, health: currentHealth()
 			})
@@ -473,6 +504,9 @@ export function createLifecycleHandler(options: ResolvedLifecycleOptions): Manag
 			} catch(error) {
 				lastFailureCode = 'LIFECYCLE_STARTUP_FAILURE'
 				telemetry.startup('failure', Math.max(0, options.monotonicClock.now() - startedAt))
+				if (!wasReported(error)) telemetry.failure(error, 'LIFECYCLE_STARTUP_FAILURE', {
+					...(startupStage ? {startupStage} : {})
+				})
 				await beginDrain('error')
 				try { await shutdown('error') } catch { /* startup error remains primary */ }
 				throw new LifecycleStartupError('Lifecycle startup failed', {

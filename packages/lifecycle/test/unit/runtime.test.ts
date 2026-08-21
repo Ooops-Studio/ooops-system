@@ -222,6 +222,68 @@ describe('managed lifecycle runtime', () => {
 		expect(runtime.getStatus()).toMatchObject({state: 'closed', health: 'closed'})
 	})
 
+	it('reports the actual shutdown-hook cause once with bounded hook context', async() => {
+		const report = vi.fn()
+		const cause = Object.assign(new Error('postgres client close failed'), {code: '57P01'})
+		const runtime = lifecycle({
+			clock: {now: Date.now},
+			observability: {errors: {report} as never}
+		})
+		runtime.registerShutdownHook('first', () => { throw cause }, {
+			name: 'database.close',
+			priority: 7
+		})
+		await runtime.start()
+
+		const shutdownError = await runtime.shutdown('signal').catch((error: unknown) => error) as Error
+
+		expect(shutdownError.message).toBe('Lifecycle shutdown failed')
+		expect((shutdownError.cause as Error).cause).toBe(cause)
+		expect(report).toHaveBeenCalledOnce()
+		expect(report).toHaveBeenCalledWith(
+			expect.objectContaining({
+				kind: 'Error',
+				message: 'postgres client close failed',
+				code: '57P01'
+			}),
+			{
+				source: 'lifecycle',
+				code: 'LIFECYCLE_HOOK_FAILURE',
+				stage: 'shutdown',
+				hookName: 'database.close',
+				hookGroup: 'first',
+				hookPriority: '7',
+				shutdownReason: 'signal'
+			}
+		)
+		expect(JSON.stringify(report.mock.calls)).not.toContain('Lifecycle shutdown failed')
+	})
+
+	it('reports the actual terminal flush cause once without a shutdown summary alert', async() => {
+		const report = vi.fn()
+		const runtime = lifecycle({
+			clock: {now: Date.now},
+			observability: {errors: {report} as never}
+		})
+		runtime.registerFlushHook('telemetry.flush', () => {
+			throw new Error('sentry transport unavailable')
+		})
+		await runtime.start()
+
+		await expect(runtime.shutdown('manual')).rejects.toThrow('Lifecycle shutdown failed')
+
+		expect(report).toHaveBeenCalledOnce()
+		expect(report).toHaveBeenCalledWith(
+			expect.objectContaining({message: 'sentry transport unavailable'}),
+			expect.objectContaining({
+				code: 'LIFECYCLE_HOOK_FAILURE',
+				stage: 'flush',
+				hookName: 'telemetry.flush',
+				terminal: 'true'
+			})
+		)
+	})
+
 	it('does not start timed-out physical work a second time', async() => {
 		let resolve!: () => void
 		const physical = new Promise<void>((done) => { resolve = done })

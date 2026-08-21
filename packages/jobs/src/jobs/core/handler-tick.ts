@@ -79,12 +79,15 @@ export function createJobsTick(
 
 	const run = async(): Promise<void> => {
 		const failures: unknown[] = []
-		const attempt = async(operation: () => Promise<void>): Promise<void> => {
-			try { await operation() } catch(error) { failures.push(error) }
+		const attempt = async(name: 'schedule-trigger' | 'stale-recovery' | 'run-claim', operation: () => Promise<void>): Promise<void> => {
+			try { await operation() } catch(error) {
+				failures.push(error)
+				context.report(error, name)
+			}
 		}
 		try {
-			await attempt(async() => runStage('schedule-trigger', triggerDueSchedules))
-			await attempt(async() => runStage('stale-recovery', async() => {
+			await attempt('schedule-trigger', async() => runStage('schedule-trigger', triggerDueSchedules))
+			await attempt('stale-recovery', async() => runStage('stale-recovery', async() => {
 				const now = context.now()
 				const recovered = await context.options.backend.recoverStaleLeases(
 					now,
@@ -97,7 +100,7 @@ export function createJobsTick(
 					throw new Error('Jobs backend returned an invalid stale recovery result')
 				}
 			}))
-			await attempt(async() => runStage('run-claim', dispatch))
+			await attempt('run-claim', async() => runStage('run-claim', dispatch))
 		} finally {
 			// Cleanup is the recovery path for bounded backends. A full dead-letter
 			// bucket can itself make stale recovery fail, so earlier stage failures
@@ -121,8 +124,7 @@ export function createJobsTick(
 		if (context.control.timer) return
 		context.control.timer = setInterval(() => {
 			if (context.control.tick) return
-			void tick().catch((error) => {
-				context.report(error, 'tick')
+			void tick().catch(() => {
 				if (context.state.backgroundFailures.length >= 1_024) context.state.backgroundFailures.shift()
 				context.state.backgroundFailures.push(context.diagnosticError('tick'))
 			})

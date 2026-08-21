@@ -1,6 +1,6 @@
 {
 	"name": "@ooopsstudio/jobs",
-	"version": "0.9.0",
+	"version": "0.9.1",
 	"description": "Bounded task scheduling and durable background job execution for Node.js.",
 	"type": "module",
 	"publishConfig": {
